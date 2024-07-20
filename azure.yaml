@@ -1,8 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
 
-name: FiinanceTracker
-services:  
+name: FinanceTracker
+services:
   app:
     language: dotnet
-    project: .\FiinanceTracker.AppHost\FiinanceTracker.AppHost.csproj
+    project: .\FinanceTracker.AppHost\FinanceTracker.AppHost.csproj
     host: containerapp

@@ -1,5 +1,5 @@
-using FiinanceTracker.Web;
-using FiinanceTracker.Web.Components;
+using FinanceTracker.Web;
+using FinanceTracker.Web.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 

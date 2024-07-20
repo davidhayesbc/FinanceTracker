@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace FiinanceTracker.Tests;
+namespace FinanceTracker.Tests;
 
 public class WebTests
 {
@@ -8,7 +8,7 @@ public class WebTests
     public async Task GetWebResourceRootReturnsOkStatusCode()
     {
         // Arrange
-        var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.FiinanceTracker_AppHost>();
+        var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.FinanceTracker_AppHost>();
         await using var app = await appHost.BuildAsync();
         await app.StartAsync();
 

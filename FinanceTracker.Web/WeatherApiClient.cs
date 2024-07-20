@@ -1,4 +1,4 @@
-namespace FiinanceTracker.Web;
+namespace FinanceTracker.Web;
 
 public class WeatherApiClient(HttpClient httpClient)
 {

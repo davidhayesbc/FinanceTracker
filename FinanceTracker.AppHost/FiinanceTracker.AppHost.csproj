@@ -10,8 +10,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FiinanceTracker.ApiService\FiinanceTracker.ApiService.csproj" />
-    <ProjectReference Include="..\FiinanceTracker.Web\FiinanceTracker.Web.csproj" />
+    <ProjectReference Include="..\FinanceTracker.ApiService\FinanceTracker.ApiService.csproj" />
+    <ProjectReference Include="..\FinanceTracker.Web\FinanceTracker.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>
