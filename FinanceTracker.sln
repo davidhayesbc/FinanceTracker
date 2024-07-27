@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.35027.167
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinanceTracker.AppHost", "FinanceTracker.AppHost\FinanceTracker.AppHost.csproj", "{8FE85141-321F-4F93-95F6-BAF58366058C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FinanceTracker.AppHost", "FinanceTracker.AppHost\FinanceTracker.AppHost.csproj", "{8FE85141-321F-4F93-95F6-BAF58366058C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FinanceTracker.ServiceDefaults", "FinanceTracker.ServiceDefaults\FinanceTracker.ServiceDefaults.csproj", "{9C89A49C-3B2C-4FE0-AC80-4AE1ACAE20C4}"
 EndProject
