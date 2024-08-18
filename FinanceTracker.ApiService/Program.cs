@@ -1,3 +1,5 @@
+using FinanceTracker.Data.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire components.
@@ -5,6 +7,8 @@ builder.AddServiceDefaults();
 
 // Add services to the container.
 builder.Services.AddProblemDetails();
+
+builder.Services.AddDbContext<FinanceTackerDbContext>( );
 
 var app = builder.Build();
 
@@ -28,6 +32,13 @@ app.MapGet("/weatherforecast", () =>
         .ToArray();
     return forecast;
 });
+
+app.MapGet("/accounts", (FinanceTackerDbContext context) =>
+{
+    return context.Accounts.ToList();
+});
+
+
 
 app.MapDefaultEndpoints();
 

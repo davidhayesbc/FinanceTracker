@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -6,16 +6,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsAspireHost>true</IsAspireHost>
-    <UserSecretsId>e291f1cb-0a39-4b3d-a6ea-d634046e32a3</UserSecretsId>
+    <UserSecretsId>cc295cd8-e5ef-4772-b877-a48393f975b0</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\FinanceTracker.ApiService\FinanceTracker.ApiService.csproj" />
+    <ProjectReference Include="..\FinanceTracker.MigrationService\FinanceTracker.MigrationService.csproj" />
     <ProjectReference Include="..\FinanceTracker.Web\FinanceTracker.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost" Version="8.0.0" />
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="8.1.0" />
+    <PackageReference Include="Aspire.Hosting.SqlServer" Version="8.1.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.4" />
   </ItemGroup>
 
 </Project>
