@@ -3,7 +3,7 @@ using Projects;
 var builder = DistributedApplication.CreateBuilder(args);
 var password = builder.AddParameter("DatabaseServerPassword", true);
 
-var sqlServer = builder.AddSqlServer("sqlServer", password, 1433).WithDataVolume();
+var sqlServer = builder.AddSqlServer("sqlServer", password, 1433).WithDataBindMount("./SqlData");
 var database = sqlServer.AddDatabase("FinanceTracker");
 
 var apiService = builder.AddProject<FinanceTracker_ApiService>("apiservice")

@@ -12,6 +12,8 @@ param location string
 @description('Id of the user or app to assign application roles')
 param principalId string = ''
 
+@secure()
+param DatabaseServerPassword string
 
 var tags = {
   'azd-env-name': environmentName
@@ -41,3 +43,5 @@ output AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID string = resources.outputs.A
 output AZURE_CONTAINER_APPS_ENVIRONMENT_NAME string = resources.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_NAME
 output AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = resources.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_ID
 output AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = resources.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
+output SERVICE_SQLSERVER_VOLUME_FINANCETRACKERAPPHOST_SQLSERVER_DATA_NAME string = resources.outputs.SERVICE_SQLSERVER_VOLUME_FINANCETRACKERAPPHOST_SQLSERVER_DATA_NAME
+output AZURE_VOLUMES_STORAGE_ACCOUNT string = resources.outputs.AZURE_VOLUMES_STORAGE_ACCOUNT
