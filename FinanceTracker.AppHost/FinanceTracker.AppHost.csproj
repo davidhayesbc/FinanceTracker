@@ -10,6 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="SqlData\**" />
+    <EmbeddedResource Remove="SqlData\**" />
+    <None Remove="SqlData\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\FinanceTracker.ApiService\FinanceTracker.ApiService.csproj" />
     <ProjectReference Include="..\FinanceTracker.MigrationService\FinanceTracker.MigrationService.csproj" />
     <ProjectReference Include="..\FinanceTracker.Web\FinanceTracker.Web.csproj" />

@@ -1,14 +1,20 @@
-﻿namespace FinanceTracker.Data.Models;
+namespace FinanceTracker.Data.Models;
 
-public partial class Transaction
+public partial class RecurringTransaction
 {
     public int Id { get; set; }
 
-    public DateOnly TransactionDate { get; set; }
+    public DateOnly StartDate { get; set; }
+
+    public DateOnly? EndDate { get; set; }
 
     public decimal Amount { get; set; }
-
+    
+    public decimal AmountVariancePercentage { get; set; }
+    
     public string Description { get; set; } = null!;
+
+    public string RecurrenceCronExpression { get; set; } = null!;
 
     public int AccountId { get; set; }
 
@@ -16,12 +22,11 @@ public partial class Transaction
 
     public int CategoryId { get; set; }
 
+
     public virtual Account Account { get; set; } = null!;
 
     public virtual TransactionCategory Category { get; set; } = null!;
 
-    public virtual ICollection<TransactionSplit> TransactionSplits { get; set; } = new List<TransactionSplit>();
-
     public virtual TransactionType TransactionType { get; set; } = null!;
-
 }
+

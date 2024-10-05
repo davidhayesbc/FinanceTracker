@@ -18,6 +18,7 @@ public partial class FinanceTackerDbContext : DbContext
     public virtual DbSet<AccountType> AccountTypes { get; set; }
 
     public virtual DbSet<Transaction> Transactions { get; set; }
+    public virtual DbSet<RecurringTransaction> RecurringTransactions { get; set; }
 
     public virtual DbSet<TransactionCategory> TransactionCategories { get; set; }
 
@@ -25,14 +26,11 @@ public partial class FinanceTackerDbContext : DbContext
 
     public virtual DbSet<TransactionType> TransactionTypes { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Name=ConnectionStrings:FinanceTracker");
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Account__3214EC072E8BD840");
+            entity.HasKey(e => e.Id).HasName("PK_Account");
 
             entity.ToTable("Account");
 
@@ -47,7 +45,7 @@ public partial class FinanceTackerDbContext : DbContext
 
         modelBuilder.Entity<AccountType>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__AccountT__3214EC0785814C1D");
+            entity.HasKey(e => e.Id).HasName("PK__AccountType");
 
             entity.ToTable("AccountType");
 
@@ -56,7 +54,7 @@ public partial class FinanceTackerDbContext : DbContext
 
         modelBuilder.Entity<Transaction>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC07E906A3AC");
+            entity.HasKey(e => e.Id).HasName("PK_Transaction");
 
             entity.ToTable("Transaction");
 
@@ -79,9 +77,37 @@ public partial class FinanceTackerDbContext : DbContext
                 .HasConstraintName("FK_Transaction_ToTransactionType");
         });
 
+        modelBuilder.Entity<RecurringTransaction>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_RecurringTransaction");
+
+            entity.ToTable("RecurringTransaction");
+
+            entity.Property(e => e.StartDate).HasColumnType("date");
+            entity.Property(e => e.EndDate).HasColumnType("date");
+            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.AmountVariancePercentage).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Description).HasMaxLength(100);
+            entity.Property(e => e.RecurrenceCronExpression).HasMaxLength(100);
+
+            entity.HasOne(d => d.Account).WithMany(p => p.RecurringTransactions)
+                .HasForeignKey(d => d.AccountId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_RecurringTransaction_ToAccount");
+
+            entity.HasOne(d => d.Category).WithMany(p => p.RecurringTransactions)
+                .HasForeignKey(d => d.CategoryId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_RecurringTransaction_ToTransactionCategory");
+
+            entity.HasOne(d => d.TransactionType).WithMany(p => p.RecurringTransactions)
+                .HasForeignKey(d => d.TransactionTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_RecurringTransaction_ToTransactionType");
+        });
         modelBuilder.Entity<TransactionCategory>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Transact__3214EC0788389A10");
+            entity.HasKey(e => e.Id).HasName("PK_TransactionCategory");
 
             entity.ToTable("TransactionCategory");
 
@@ -91,7 +117,7 @@ public partial class FinanceTackerDbContext : DbContext
 
         modelBuilder.Entity<TransactionSplit>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Transact__3214EC078C80138B");
+            entity.HasKey(e => e.Id).HasName("PK_TransactionSplit");
 
             entity.ToTable("TransactionSplit");
 
@@ -111,7 +137,7 @@ public partial class FinanceTackerDbContext : DbContext
 
         modelBuilder.Entity<TransactionType>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Transact__3214EC07D26F23FD");
+            entity.HasKey(e => e.Id).HasName("PK_TransactionType");
 
             entity.ToTable("TransactionType");
 

@@ -11,4 +11,6 @@ public partial class TransactionCategory
     public virtual ICollection<TransactionSplit> TransactionSplits { get; set; } = new List<TransactionSplit>();
 
     public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+    public virtual ICollection<RecurringTransaction> RecurringTransactions { get; set; } = new List<RecurringTransaction>();
+
 }
