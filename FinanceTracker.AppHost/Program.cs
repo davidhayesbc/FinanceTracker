@@ -17,12 +17,15 @@ var migrationService = builder.AddProject<FinanceTracker_MigrationService>("migr
 
 var apiService = builder.AddProject<FinanceTracker_ApiService>("apiservice")
     .WithReference(database)
+    .WithHttpHealthCheck("/health")
     .WaitFor(sqlServer)
     .WaitForCompletion(migrationService);
 
 builder.AddProject<FinanceTracker_Web>("webfrontend")
     .WithExternalHttpEndpoints()
-    .WithReference(apiService).WaitFor(apiService);
+    .WithHttpHealthCheck("/health")
+    .WithReference(apiService)
+    .WaitFor(apiService);
 
 
 
