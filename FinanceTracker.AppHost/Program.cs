@@ -1,11 +1,14 @@
 using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
-var password = builder.AddParameter("DatabaseServerPassword", true);
 
-var sqlServer = builder.AddSqlServer("sqlServer", password, 1433)
-    .WithDataBindMount("./SqlData")
-    .WithLifetime(ContainerLifetime.Persistent);
+var sqlServer = builder.AddAzureSqlServer("sqlServer")
+    .RunAsContainer(o =>
+    {
+        o.WithLifetime(ContainerLifetime.Persistent);
+        o.WithDataBindMount("./SqlData");
+    });
+
 var database = sqlServer.AddDatabase("FinanceTracker");
 
 var migrationService = builder.AddProject<FinanceTracker_MigrationService>("migrationservice")
