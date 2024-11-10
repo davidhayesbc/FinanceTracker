@@ -20,7 +20,7 @@ public class Program
 
         // Add SQL Server DbContext
         builder.Services.AddDbContext<FinanceTackerDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("FinanceTracker"), providerOptions => providerOptions.EnableRetryOnFailure()));
+            options.UseSqlServer(builder.Configuration.GetConnectionString("FinanceTracker")));
 
         var host = builder.Build();
         host.Run();
