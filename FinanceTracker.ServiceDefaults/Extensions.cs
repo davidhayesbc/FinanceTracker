@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using System.Text.Json;
 
 namespace Microsoft.Extensions.Hosting;
 
@@ -14,6 +16,17 @@ namespace Microsoft.Extensions.Hosting;
 // To learn more about using this project, see https://aka.ms/dotnet/aspire/service-defaults
 public static class Extensions
 {
+    private static readonly Dictionary<string, string> VersionInformation;
+
+    static Extensions()
+    {
+        VersionInformation = new Dictionary<string, string>
+        {
+            { "applicationVersion", typeof(Extensions).Assembly.GetName().Version?.ToString() ?? "unknown" },
+            { "dotnetVersion", System.Environment.Version.ToString() }
+        };
+    }
+
     public static IHostApplicationBuilder AddServiceDefaults(this IHostApplicationBuilder builder)
     {
         builder.ConfigureOpenTelemetry();
@@ -86,7 +99,7 @@ public static class Extensions
         builder.Services.AddHealthChecks()
             // Add a default liveness check to ensure app is responsive
             .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
-
+        
         return builder;
     }
 
@@ -97,7 +110,26 @@ public static class Extensions
         if (app.Environment.IsDevelopment())
         {
             // All health checks must pass for app to be considered ready to accept traffic after starting
-            app.MapHealthChecks("/health");
+            app.MapHealthChecks("/health", new HealthCheckOptions
+            {
+                ResponseWriter = async (context, report) =>
+                {
+                    context.Response.ContentType = "application/json";
+                    var response = new
+                    {
+                        status = report.Status.ToString(),
+                        results = report.Entries.Select(entry => new
+                        {
+                            key = entry.Key,
+                            status = entry.Value.Status.ToString(),
+                            description = entry.Value.Description,
+                            data = entry.Value.Data
+                        }),
+                        versionInfo = VersionInformation
+                    };
+                    await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+                }
+            });
 
             // Only health checks tagged with the "live" tag must pass for app to be considered alive
             app.MapHealthChecks("/alive", new HealthCheckOptions
