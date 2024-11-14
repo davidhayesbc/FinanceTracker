@@ -69,7 +69,7 @@ app.MapGet("/transactions/{id}", async (FinanceTackerDbContext context, int id) 
     var transaction = await context.Transactions.FindAsync(id);
     return transaction is not null ? Results.Ok(transaction) : Results.NotFound();
 });
-app.MapGet("/transactions/{id}/transationSpilts", async (FinanceTackerDbContext context, int id) =>
+app.MapGet("/transactions/{id}/transactionSplits", async (FinanceTackerDbContext context, int id) =>
 {
     var transactionSplits =  context.TransactionSplits.Where(t => t.TransactionId == id);
     return Results.Ok(transactionSplits);

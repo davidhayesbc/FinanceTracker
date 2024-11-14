@@ -119,6 +119,6 @@ GET {{FinanceTracker.ApiService_HostAddress}}/transactions/{{id}}
 
 ###
 
-GET {{FinanceTracker.ApiService_HostAddress}}/transactions/{{id}}/transationSpilts
+GET {{FinanceTracker.ApiService_HostAddress}}/transactions/{{id}}/transactionSplits
 
 ###
