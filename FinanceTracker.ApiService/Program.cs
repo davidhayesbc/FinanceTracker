@@ -31,11 +31,20 @@ app.MapPost("/accountTypes", async (FinanceTackerDbContext context, AccountType 
 
 // Account Handlers
 app.MapGet("/accounts", (FinanceTackerDbContext context) => { return context.Accounts.ToList(); });
-
 app.MapGet("/accounts/{id}", async (FinanceTackerDbContext context, int id) =>
 {
     var account = await context.Accounts.FindAsync(id);
     return account is not null ? Results.Ok(account) : Results.NotFound();
+});
+app.MapGet("/accounts/{id}/transactions", async (FinanceTackerDbContext context, int id) =>
+{
+    var transactions = context.Transactions.Where(t => t.AccountId == id);
+    return Results.Ok(transactions);
+});
+app.MapGet("/accounts/{id}/recurringTransactions", async (FinanceTackerDbContext context, int id) =>
+{
+    var recurringTransactions = context.RecurringTransactions.Where(t => t.AccountId == id);
+    return Results.Ok(recurringTransactions);
 });
 app.MapPost("/accounts", async (FinanceTackerDbContext context, Account account) =>
 {
@@ -46,7 +55,6 @@ app.MapPost("/accounts", async (FinanceTackerDbContext context, Account account)
 
 // RecurringTransactions Handlers
 app.MapGet("/recurringTransactions", (FinanceTackerDbContext context) => { return context.RecurringTransactions.ToList(); });
-
 app.MapPost("/recurringTransactions", async (FinanceTackerDbContext context, RecurringTransaction recurringTransaction) =>
 {
     context.RecurringTransactions.Add(recurringTransaction);
@@ -56,7 +64,16 @@ app.MapPost("/recurringTransactions", async (FinanceTackerDbContext context, Rec
 
 // Transactions Handlers
 app.MapGet("/transactions", (FinanceTackerDbContext context) => { return context.Transactions.ToList(); });
-
+app.MapGet("/transactions/{id}", async (FinanceTackerDbContext context, int id) =>
+{
+    var transaction = await context.Transactions.FindAsync(id);
+    return transaction is not null ? Results.Ok(transaction) : Results.NotFound();
+});
+app.MapGet("/transactions/{id}/transationSpilts", async (FinanceTackerDbContext context, int id) =>
+{
+    var transactionSplits =  context.TransactionSplits.Where(t => t.TransactionId == id);
+    return Results.Ok(transactionSplits);
+});
 app.MapPost("/transactions", async (FinanceTackerDbContext context, Transaction transaction) =>
 {
     context.Transactions.Add(transaction);
@@ -66,7 +83,6 @@ app.MapPost("/transactions", async (FinanceTackerDbContext context, Transaction 
 
 // Transaction Split Handlers
 app.MapGet("/transactionSplits", (FinanceTackerDbContext context) => { return context.TransactionSplits.ToList(); });
-
 app.MapPost("/transactionSplits", async (FinanceTackerDbContext context, TransactionSplit transactionSplit) =>
 {
     context.TransactionSplits.Add(transactionSplit);
@@ -77,7 +93,6 @@ app.MapPost("/transactionSplits", async (FinanceTackerDbContext context, Transac
 
 // TransactionCategory Handlers
 app.MapGet("/transactionCategories", (FinanceTackerDbContext context) => { return context.TransactionCategories.ToList(); });
-
 app.MapPost("/transactionCategories", async (FinanceTackerDbContext context, TransactionCategory transactionCategory) =>
 {
     context.TransactionCategories.Add(transactionCategory);
@@ -87,14 +102,12 @@ app.MapPost("/transactionCategories", async (FinanceTackerDbContext context, Tra
 
 // TransactionType Handlers
 app.MapGet("/transactionTypes", (FinanceTackerDbContext context) => { return context.TransactionTypes.ToList(); });
-
 app.MapPost("/transactionTypes", async (FinanceTackerDbContext context, TransactionType transactionType) =>
 {
     context.TransactionTypes.Add(transactionType);
     await context.SaveChangesAsync();
     return Results.Created($"/transactionTypes/{transactionType.Id}", transactionType);
 });
-
 
 app.MapDefaultEndpoints();
 

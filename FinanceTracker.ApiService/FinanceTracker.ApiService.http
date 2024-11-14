@@ -4,10 +4,6 @@ GET {{FinanceTracker.ApiService_HostAddress}}/accounts
 
 ###
 
-GET {{FinanceTracker.ApiService_HostAddress}}/accountTypes
-
-###
-
 POST {{FinanceTracker.ApiService_HostAddress}}/accounts
 Content-Type: application/json
 {
@@ -21,6 +17,18 @@ Content-Type: application/json
 
 @id=1
 GET {{FinanceTracker.ApiService_HostAddress}}/accounts/{{id}}
+
+###
+
+@id=1
+GET {{FinanceTracker.ApiService_HostAddress}}/accounts/{{id}}/transactions
+
+###
+GET {{FinanceTracker.ApiService_HostAddress}}/accounts/{{id}}/recurringTransactions
+
+###
+
+GET {{FinanceTracker.ApiService_HostAddress}}/accountTypes
 
 ###
 
@@ -85,7 +93,7 @@ Content-Type: application/json
   "TransactionDate": "2023-10-01",
   "Amount": 100.00,
   "Description": "Some Sort of Description",
-  "AccountId": 1,
+  "AccountId": 2,
   "TransactionTypeId": 1,
   "CategoryId": 1
 }
@@ -104,5 +112,13 @@ Content-Type: application/json
   "TransactionTypeId": 1,
   "CategoryId": 2
 }
+
+###
+@id=1
+GET {{FinanceTracker.ApiService_HostAddress}}/transactions/{{id}}
+
+###
+
+GET {{FinanceTracker.ApiService_HostAddress}}/transactions/{{id}}/transationSpilts
 
 ###
