@@ -1,0 +1,26 @@
+﻿@FinanceTracker.ApiService_HostAddress = https://localhost:7350
+
+GET {{FinanceTracker.ApiService_HostAddress}}/accounts
+
+###
+
+GET {{FinanceTracker.ApiService_HostAddress}}/accountTypes
+
+###
+
+POST {{FinanceTracker.ApiService_HostAddress}}/accounts
+Content-Type: application/json
+
+{
+  "Name": "Sample Account",
+  "OpeningBalance": 1000.00,
+  "OpenDate": "2023-10-01",
+  "AccountTypeId": 1
+}
+
+###
+
+@id=1
+GET {{FinanceTracker.ApiService_HostAddress}}/accounts/{{id}}
+
+###
