@@ -8,6 +8,7 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using System.Text.Json;
+using Microsoft.Data.SqlClient;
 using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Logs;
 
@@ -69,6 +70,21 @@ public static class Extensions
                 //Filter out health check requests from tracing, they fill the logs with noise
                 tracing.AddAspNetCoreInstrumentation((o) => o.Filter = (HttpContext context) => !context.Request.Path.Equals("/health"));
                 tracing.AddHttpClientInstrumentation();
+                tracing.AddSqlClientInstrumentation(options =>
+                {
+                    options.SetDbStatementForText = true;
+                    options.EnableConnectionLevelAttributes = true;
+                    options.SetDbStatementForStoredProcedure = true;
+                    options.RecordException = true;
+                    //options.Filter = new Func<object, bool>((activity) =>
+                    //{
+                    //    SqlCommand cmd = activity as SqlCommand;
+                    //    // Exclude health check activities
+                    //    var b = !cmd.CommandText.Equals("SELECT 1");
+
+                    //    return b;
+                    //});
+                });
             });
 
 

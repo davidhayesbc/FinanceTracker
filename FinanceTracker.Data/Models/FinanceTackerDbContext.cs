@@ -56,10 +56,12 @@ public partial class FinanceTackerDbContext : DbContext
         modelBuilder.Entity<AccountType>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__AccountType");
-            
+
             entity.ToTable("AccountType");
-            //TODO: Figure out how to add a unique constraint
+
             entity.Property(e => e.Type).HasMaxLength(50);
+
+            entity.HasIndex(e => e.Type).IsUnique().HasDatabaseName("UX_AccountType_Type");
         });
 
         modelBuilder.Entity<Transaction>(entity =>
@@ -123,6 +125,8 @@ public partial class FinanceTackerDbContext : DbContext
 
             entity.Property(e => e.Category).HasMaxLength(50);
             entity.Property(e => e.Description).HasMaxLength(100);
+
+            entity.HasIndex(e => e.Category).IsUnique().HasDatabaseName("UX_TransactionCategory_Category");
         });
 
         modelBuilder.Entity<TransactionSplit>(entity =>
@@ -152,6 +156,8 @@ public partial class FinanceTackerDbContext : DbContext
             entity.ToTable("TransactionType");
 
             entity.Property(e => e.Type).HasMaxLength(50);
+
+            entity.HasIndex(e => e.Type).IsUnique().HasDatabaseName("UX_TransactionType_Type");
         });
 
         OnModelCreatingPartial(modelBuilder);
