@@ -15,6 +15,8 @@ public partial class FinanceTackerDbContext : DbContext
 
     public virtual DbSet<Account> Accounts { get; set; }
 
+    public virtual DbSet<AccountPeriod> AccountPeriods { get; set; }
+
     public virtual DbSet<AccountType> AccountTypes { get; set; }
 
     public virtual DbSet<Transaction> Transactions { get; set; }
@@ -43,12 +45,20 @@ public partial class FinanceTackerDbContext : DbContext
                 .HasConstraintName("FK_Account_ToAccountType");
         });
 
+        modelBuilder.Entity<AccountPeriod>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_AccountPeriod");
+
+            entity.ToTable("AccountPeriod");
+        });
+
+
         modelBuilder.Entity<AccountType>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__AccountType");
-
+            
             entity.ToTable("AccountType");
-
+            //TODO: Figure out how to add a unique constraint
             entity.Property(e => e.Type).HasMaxLength(50);
         });
 
