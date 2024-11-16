@@ -8,6 +8,8 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using System.Text.Json;
+using OpenTelemetry.Instrumentation.AspNetCore;
+using OpenTelemetry.Logs;
 
 namespace Microsoft.Extensions.Hosting;
 
@@ -49,26 +51,26 @@ public static class Extensions
 
     public static IHostApplicationBuilder ConfigureOpenTelemetry(this IHostApplicationBuilder builder)
     {
-        builder.Logging.AddOpenTelemetry(logging =>
+        builder.Logging.AddOpenTelemetry((OpenTelemetryLoggerOptions logging) =>
         {
             logging.IncludeFormattedMessage = true;
             logging.IncludeScopes = true;
         });
 
         builder.Services.AddOpenTelemetry()
-            .WithMetrics(metrics =>
+            .WithMetrics((MeterProviderBuilder metrics) =>
             {
                 metrics.AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation();
             })
-            .WithTracing(tracing =>
+            .WithTracing((TracerProviderBuilder tracing) =>
             {
-                tracing.AddAspNetCoreInstrumentation()
-                    // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
-                    //.AddGrpcClientInstrumentation()
-                    .AddHttpClientInstrumentation();
+                //Filter out health check requests from tracing, they fill the logs with noise
+                tracing.AddAspNetCoreInstrumentation((o) => o.Filter = (HttpContext context) => !context.Request.Path.Equals("/health"));
+                tracing.AddHttpClientInstrumentation();
             });
+
 
         builder.AddOpenTelemetryExporters();
 

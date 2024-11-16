@@ -1,4 +1,5 @@
 using FinanceTracker.Data.Models;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,12 +56,12 @@ void MapAccountEndpoints()
     });
     app.MapGet("/accounts/{id}/transactions", async (FinanceTackerDbContext context, int id) =>
     {
-        var transactions = context.Transactions.Where(t => t.AccountId == id);
+        var transactions = await context.Transactions.Where(t => t.AccountId == id).ToListAsync();
         return Results.Ok(transactions);
     });
     app.MapGet("/accounts/{id}/recurringTransactions", async (FinanceTackerDbContext context, int id) =>
     {
-        var recurringTransactions = context.RecurringTransactions.Where(t => t.AccountId == id);
+        var recurringTransactions = await context.RecurringTransactions.Where(t => t.AccountId == id).ToListAsync();
         return Results.Ok(recurringTransactions);
     });
     app.MapPost("/accounts", async (FinanceTackerDbContext context, Account account) =>
@@ -95,7 +96,7 @@ void MapTransactionEndpoints()
     });
     app.MapGet("/transactions/{id}/transactionSplits", async (FinanceTackerDbContext context, int id) =>
     {
-        var transactionSplits = context.TransactionSplits.Where(t => t.TransactionId == id);
+        var transactionSplits = await context.TransactionSplits.Where(t => t.TransactionId == id).ToListAsync();
         return Results.Ok(transactionSplits);
     });
     app.MapPost("/transactions", async (FinanceTackerDbContext context, Transaction transaction) =>
