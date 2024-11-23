@@ -11,7 +11,7 @@ builder.Services.AddProblemDetails();
 builder.AddSqlServerDbContext<FinanceTackerDbContext>("FinanceTracker");
 
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<FinanceTackerDbContext>("FinanceTrackerDbContext",tags: ["Database-Check"]);
+    .AddDbContextCheck<FinanceTackerDbContext>("FinanceTrackerDbContext");
 
 var app = builder.Build();
 

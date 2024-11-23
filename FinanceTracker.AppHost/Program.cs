@@ -27,6 +27,4 @@ builder.AddProject<FinanceTracker_Web>("webfrontend")
     .WithReference(apiService)
     .WaitFor(apiService);
 
-
-
 builder.Build().Run();

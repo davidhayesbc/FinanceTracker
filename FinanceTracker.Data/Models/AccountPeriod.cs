@@ -1,11 +1,15 @@
-﻿namespace FinanceTracker.Data.Models;
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace FinanceTracker.Data.Models;
 
 public partial class AccountPeriod
 {
     public int Id { get; set; }
     public int AccountId { get; set; }
 
+    [Precision(18, 2)]
     public decimal OpeningBalance { get; set; }
+    [Precision(18, 2)]
     public decimal ClosingBalance { get; set; }
 
     public DateOnly PeriodStart{ get; set; }

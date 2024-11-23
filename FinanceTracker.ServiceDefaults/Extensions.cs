@@ -79,7 +79,7 @@ public static class Extensions
                     //options.Filter = new Func<object, bool>((activity) =>
                     //{
                     //    SqlCommand cmd = activity as SqlCommand;
-                    //    // Exclude health check activities
+                    //    //Exclude health check activities
                     //    var b = !cmd.CommandText.Equals("SELECT 1");
 
                     //    return b;
@@ -147,13 +147,13 @@ public static class Extensions
                     };
                     await context.Response.WriteAsync(JsonSerializer.Serialize(response));
                 }
-            });
+            }).DisableHttpMetrics();
 
             // Only health checks tagged with the "live" tag must pass for app to be considered alive
             app.MapHealthChecks("/alive", new HealthCheckOptions
             {
                 Predicate = r => r.Tags.Contains("live")
-            });
+            }).DisableHttpMetrics();
         }
 
         return app;

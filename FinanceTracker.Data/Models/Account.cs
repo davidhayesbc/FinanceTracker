@@ -1,4 +1,6 @@
-﻿namespace FinanceTracker.Data.Models;
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace FinanceTracker.Data.Models;
 
 public partial class Account
 {
@@ -6,6 +8,7 @@ public partial class Account
 
     public string Name { get; set; } = null!;
 
+    [Precision(18, 2)] 
     public decimal OpeningBalance { get; set; }
 
     public DateOnly OpenDate { get; set; }
