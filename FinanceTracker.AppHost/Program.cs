@@ -21,10 +21,4 @@ var apiService = builder.AddProject<FinanceTracker_ApiService>("apiservice")
     .WaitFor(sqlServer)
     .WaitForCompletion(migrationService);
 
-builder.AddProject<FinanceTracker_Web>("webfrontend")
-    .WithExternalHttpEndpoints()
-    .WithHttpHealthCheck("/health")
-    .WithReference(apiService)
-    .WaitFor(apiService);
-
 builder.Build().Run();

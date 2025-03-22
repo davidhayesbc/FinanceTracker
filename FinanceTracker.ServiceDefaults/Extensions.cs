@@ -73,8 +73,6 @@ public static class Extensions
                 tracing.AddSqlClientInstrumentation(options =>
                 {
                     options.SetDbStatementForText = true;
-                    options.EnableConnectionLevelAttributes = true;
-                    options.SetDbStatementForStoredProcedure = true;
                     options.RecordException = true;
                     //options.Filter = new Func<object, bool>((activity) =>
                     //{
