@@ -36,33 +36,15 @@
       },
       "serverReadyAction": {
         "action": "openExternally",
-        "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
-        "uriFormat": "http://localhost:80"
-      }
-    },
-    {
-      "name": "Web UI",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "program": "${workspaceFolder}/FinanceTracker.Web/bin/Debug/net9.0/FinanceTracker.Web.dll",
-      "args": [],
-      "cwd": "${workspaceFolder}/FinanceTracker.Web",
-      "stopAtEntry": false,
-      "env": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "serverReadyAction": {
-        "action": "openExternally",
-        "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
-        "uriFormat": "http://localhost:80"
+        "pattern": "Now listening on: (https?://localhost:\\d+)",
+        "uriFormat": "%s"
       }
     }
   ],
   "compounds": [
     {
-      "name": "Launch Dashboard and Web UI",
-      "configurations": ["Aspire Dashboard", "Web UI"]
+      "name": "Launch Dashboard",
+      "configurations": ["Aspire Dashboard"]
     }
   ]
 }
