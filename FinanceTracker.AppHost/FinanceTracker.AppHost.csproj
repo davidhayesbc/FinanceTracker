@@ -22,5 +22,6 @@
     <PackageReference Include="Aspire.Hosting.Azure.Sql" Version="9.1.0" />
     <PackageReference Include="Aspire.Hosting.SqlServer" Version="9.1.0" />
     <PackageReference Include="System.Text.Json" Version="9.0.3" />
+    <PackageReference Include="Aspire.Hosting.NodeJs" Version="9.1.0" />
   </ItemGroup>
 </Project>

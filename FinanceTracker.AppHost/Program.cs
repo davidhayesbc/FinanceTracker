@@ -21,4 +21,10 @@ var apiService = builder.AddProject<FinanceTracker_ApiService>("apiservice")
     .WaitFor(sqlServer)
     .WaitForCompletion(migrationService);
 
+var webApp = builder.AddNpmApp("web", "../FinanceTracker.Web", "dev")
+    .WithReference(apiService)
+    .WaitForCompletion(migrationService)
+    .WithEndpoint(port: 80, targetPort: 5173, name: "web-http", scheme: "http")
+    .WithEndpoint(port: 443, targetPort: 5173, name: "web-https", scheme: "https");
+
 builder.Build().Run();
