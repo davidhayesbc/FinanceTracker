@@ -17,11 +17,19 @@ const chartData = computed(() => {
       {
         data: spendingByCategory.value?.map(category => category.amount) || [],
         backgroundColor: [
-          '#42A5F5', '#66BB6A', '#FFA726', '#26C6DA', '#7E57C2',
-          '#EC407A', '#EF5350', '#78909C', '#29B6F6', '#AB47BC'
-        ]
-      }
-    ]
+          '#42A5F5',
+          '#66BB6A',
+          '#FFA726',
+          '#26C6DA',
+          '#7E57C2',
+          '#EC407A',
+          '#EF5350',
+          '#78909C',
+          '#29B6F6',
+          '#AB47BC',
+        ],
+      },
+    ],
   };
 });
 
@@ -34,7 +42,7 @@ const chartOptions = ref({
 <template>
   <div class="dashboard">
     <h1>Financial Dashboard</h1>
-    
+
     <!-- Overview Cards -->
     <div class="grid">
       <div class="col-12 md:col-6 lg:col-3">
@@ -72,7 +80,7 @@ const chartOptions = ref({
         </Card>
       </div>
     </div>
-    
+
     <!-- Account Summary & Spending Section -->
     <div class="grid mt-3">
       <!-- Account Summary -->
@@ -94,7 +102,7 @@ const chartOptions = ref({
           </DataTable>
         </Panel>
       </div>
-      
+
       <!-- Spending by Category -->
       <div class="col-12 lg:col-6">
         <Panel header="Spending by Category">
@@ -104,7 +112,7 @@ const chartOptions = ref({
         </Panel>
       </div>
     </div>
-    
+
     <!-- Recent Transactions -->
     <div class="grid mt-3">
       <div class="col-12">
@@ -131,6 +139,12 @@ const chartOptions = ref({
 </template>
 
 <style scoped>
+.dashboard {
+  width: 100%;
+  max-width: 100%;
+  padding: 0; /* Remove padding */
+  box-sizing: border-box;
+}
 .dashboard h1 {
   margin-bottom: 1.5rem;
   color: var(--text-color);

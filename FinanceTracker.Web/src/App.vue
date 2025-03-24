@@ -1,39 +1,39 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import { ref } from 'vue'
+import { RouterLink, RouterView } from 'vue-router';
+import { ref } from 'vue';
 
 // Define menu items for the sidebar
 const menuItems = ref([
   {
     label: 'Dashboard',
     icon: 'pi pi-home',
-    to: '/'
+    to: '/',
   },
   {
     label: 'Accounts',
     icon: 'pi pi-wallet',
-    to: '/accounts'
+    to: '/accounts',
   },
   {
     label: 'Transactions',
     icon: 'pi pi-list',
-    to: '/transactions'
+    to: '/transactions',
   },
   {
     label: 'Budget',
     icon: 'pi pi-chart-pie',
-    to: '/budget'
+    to: '/budget',
   },
   {
     label: 'Reports',
     icon: 'pi pi-chart-bar',
-    to: '/reports'
+    to: '/reports',
   },
   {
     label: 'Settings',
     icon: 'pi pi-cog',
-    to: '/settings'
-  }
+    to: '/settings',
+  },
 ]);
 </script>
 
@@ -66,16 +66,31 @@ const menuItems = ref([
 </template>
 
 <style>
+/* Reset some base styles to ensure full width */
+html,
+body,
+#app {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
 /* Global styles */
 .layout-wrapper {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
 }
 
 .top-bar {
   padding: 0.5rem 1rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
 }
 
 .app-title {
@@ -87,18 +102,26 @@ const menuItems = ref([
 .layout-content {
   display: flex;
   flex-grow: 1;
+  width: 100%;
+  max-width: 100vw;
 }
 
 .layout-sidebar {
   width: 250px;
+  min-width: 250px;
+  flex-shrink: 0;
   border-right: 1px solid var(--surface-border);
   padding: 1rem;
 }
 
 .layout-main {
-  flex-grow: 1;
+  flex: 1;
   padding: 1.5rem;
   background-color: var(--surface-ground);
+  width: calc(100% - 250px);
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 @media (max-width: 768px) {
@@ -107,8 +130,12 @@ const menuItems = ref([
   }
   .layout-sidebar {
     width: 100%;
+    min-width: 100%;
     border-right: none;
     border-bottom: 1px solid var(--surface-border);
+  }
+  .layout-main {
+    width: 100%;
   }
 }
 </style>
