@@ -6,10 +6,23 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';
 import Chart from 'primevue/chart';
+import ProgressSpinner from 'primevue/progressspinner';
 import { computed, ref } from 'vue';
+import { AccountService } from '../services/accountService';
 
-const { accountSummary, recentTransactions, spendingByCategory, netWorthHistory, loading, error } =
-  useAccounts();
+const {
+  accountSummary,
+  recentTransactions,
+  spendingByCategory,
+  netWorthHistory,
+  loading,
+  error,
+  fetchAccounts,
+} = useAccounts();
+
+// Individual loading states
+const accountsLoading = ref(false);
+const transactionsLoading = ref(false);
 
 const chartData = computed(() => {
   return {
@@ -42,10 +55,11 @@ const chartOptions = ref({
     legend: {
       position: 'right',
       labels: {
-        boxWidth: 20,
-        padding: 15,
+        boxWidth: 24,
+        padding: 20,
         font: {
           size: 16,
+          weight: 'bold',
         },
       },
     },
@@ -55,13 +69,13 @@ const chartOptions = ref({
   },
   layout: {
     padding: {
-      left: 10,
-      right: 10,
-      top: 10,
-      bottom: 10,
+      left: 15,
+      right: 30,
+      top: 15,
+      bottom: 15,
     },
   },
-  cutout: '50%', // Adjust the size of the doughnut hole
+  cutout: '45%',
 });
 
 // Net Worth Line Chart Data
@@ -103,11 +117,26 @@ const netWorthOptions = ref({
     },
   },
 });
+
+// Function to refresh data
+const refreshData = async () => {
+  await fetchAccounts();
+};
 </script>
 
 <template>
   <div class="dashboard">
-    <h1>Financial Dashboard</h1>
+    <div class="dashboard-header">
+      <h1>Dashboard</h1>
+      <Button
+        icon="pi pi-refresh"
+        class="p-button-text"
+        @click="refreshData"
+        :disabled="loading"
+        :loading="loading"
+        aria-label="Refresh data"
+      />
+    </div>
 
     <!-- Loading state -->
     <div v-if="loading" class="loading-container">
@@ -175,7 +204,8 @@ const netWorthOptions = ref({
       <div class="grid mt-3">
         <div class="col-12 lg:col-6">
           <Panel header="Account Summary">
-            <DataTable :value="accountSummary?.accounts" stripedRows>
+            <ProgressSpinner v-if="accountsLoading" class="loader-centered" />
+            <DataTable v-else :value="accountSummary?.accounts" stripedRows>
               <Column field="name" header="Account"></Column>
               <Column field="type" header="Type"></Column>
               <Column field="balance" header="Balance">
@@ -232,11 +262,19 @@ const netWorthOptions = ref({
 .dashboard {
   width: 100%;
   max-width: 100%;
-  padding: 0; /* Remove padding */
+  padding: 0;
   box-sizing: border-box;
 }
-.dashboard h1 {
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 1.5rem;
+}
+
+.dashboard h1 {
+  margin-bottom: 0;
   color: var(--text-color);
 }
 
@@ -269,9 +307,9 @@ const netWorthOptions = ref({
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 350px; /* Increase the height */
+  min-height: 350px;
   margin: 0 auto;
-  max-width: 90%; /* Ensure some margin */
+  max-width: 90%;
 }
 
 /* Equal height panels */
@@ -319,5 +357,13 @@ const netWorthOptions = ref({
   justify-content: center;
   padding: 2rem;
   text-align: center;
+}
+
+.loader-centered {
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
 }
 </style>
