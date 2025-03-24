@@ -19,19 +19,34 @@ interface CategorySpending {
   amount: number;
 }
 
+interface NetWorthHistory {
+  labels: string[];
+  values: number[];
+}
+
 export function useAccounts() {
   const accountSummary = ref<AccountSummary | null>(null);
   const recentTransactions = ref<Transaction[]>([]);
   const spendingByCategory = ref<CategorySpending[]>([]);
+  const netWorthHistory = ref<NetWorthHistory | null>(null);
   const loading = ref(false);
   const error = ref<Error | null>(null);
 
   async function fetchAccounts() {
     loading.value = true;
     try {
-      accountSummary.value = await AccountService.getAccountSummary();
-      recentTransactions.value = await AccountService.getRecentTransactions();
-      spendingByCategory.value = await AccountService.getSpendingByCategory();
+      // Add Promise.all to fetch data in parallel for better performance
+      const [accounts, transactions, spending, netWorth] = await Promise.all([
+        AccountService.getAccountSummary(),
+        AccountService.getRecentTransactions(),
+        AccountService.getSpendingByCategory(),
+        AccountService.getNetWorthHistory(),
+      ]);
+
+      accountSummary.value = accounts;
+      recentTransactions.value = transactions;
+      spendingByCategory.value = spending;
+      netWorthHistory.value = netWorth;
     } catch (err) {
       error.value = err instanceof Error ? err : new Error(String(err));
     } finally {
@@ -41,5 +56,13 @@ export function useAccounts() {
 
   onMounted(fetchAccounts);
 
-  return { accountSummary, recentTransactions, spendingByCategory, loading, error, fetchAccounts };
+  return {
+    accountSummary,
+    recentTransactions,
+    spendingByCategory,
+    netWorthHistory,
+    loading,
+    error,
+    fetchAccounts,
+  };
 }

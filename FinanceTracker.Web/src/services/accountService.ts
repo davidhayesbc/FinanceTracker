@@ -1,4 +1,5 @@
 import { accountSummary, recentTransactions, spendingByCategory } from '../mocks/accountData';
+import { netWorthHistory } from '../mocks/netWorthData';
 
 export const AccountService = {
   getAccountSummary() {
@@ -9,5 +10,8 @@ export const AccountService = {
   },
   getSpendingByCategory() {
     return Promise.resolve(spendingByCategory);
-  }
+  },
+  getNetWorthHistory() {
+    return Promise.resolve(netWorthHistory);
+  },
 };
