@@ -3,7 +3,7 @@ import { AccountService } from '../services/accountService';
 
 interface AccountSummary {
   totalBalance: number;
-  accounts: { id: number; name: string; balance: number; type: string; }[];
+  accounts: { id: number; name: string; balance: number; type: string }[];
 }
 
 interface Transaction {

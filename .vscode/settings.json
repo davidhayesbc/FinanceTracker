@@ -1,3 +1,10 @@
 {
-  "sarif-viewer.connectToGithubCodeScanning": "off"
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[csharp]": {
+    "editor.defaultFormatter": "ms-dotnettools.csharp"
+  },
+  "prettier.requireConfig": true,
+  "prettier.configPath": ".prettierrc.json",
+  "files.eol": "\n"
 }

@@ -1,0 +1,18 @@
+# Ignore artifacts
+dist
+build
+coverage
+node_modules
+
+# Ignore dotnet outputs
+**/bin
+**/obj
+
+# Ignore all HTML files
+*.html
+
+# Ignore compiled CSS
+*.min.css
+
+# Ignore packages
+*.nupkg
