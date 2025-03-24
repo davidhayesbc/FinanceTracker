@@ -1,85 +1,114 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import { ref } from 'vue'
+
+// Define menu items for the sidebar
+const menuItems = ref([
+  {
+    label: 'Dashboard',
+    icon: 'pi pi-home',
+    to: '/'
+  },
+  {
+    label: 'Accounts',
+    icon: 'pi pi-wallet',
+    to: '/accounts'
+  },
+  {
+    label: 'Transactions',
+    icon: 'pi pi-list',
+    to: '/transactions'
+  },
+  {
+    label: 'Budget',
+    icon: 'pi pi-chart-pie',
+    to: '/budget'
+  },
+  {
+    label: 'Reports',
+    icon: 'pi pi-chart-bar',
+    to: '/reports'
+  },
+  {
+    label: 'Settings',
+    icon: 'pi pi-cog',
+    to: '/settings'
+  }
+]);
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+  <div class="layout-wrapper">
+    <!-- Top Navigation Bar -->
+    <Menubar class="top-bar">
+      <template #start>
+        <img alt="Finance Tracker Logo" src="@/assets/logo.svg" width="40" height="40" />
+        <span class="app-title">Finance Tracker</span>
+      </template>
+      <template #end>
+        <Button icon="pi pi-bell" class="p-button-rounded p-button-text" />
+        <Button icon="pi pi-user" class="p-button-rounded p-button-text" />
+      </template>
+    </Menubar>
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+    <div class="layout-content">
+      <!-- Sidebar Navigation -->
+      <div class="layout-sidebar">
+        <Menu :model="menuItems" />
+      </div>
 
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
+      <!-- Main Content Area -->
+      <div class="layout-main">
+        <RouterView />
+      </div>
     </div>
-  </header>
-
-  <RouterView />
+  </div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+<style>
+/* Global styles */
+.layout-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+.top-bar {
+  padding: 0.5rem 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
+.app-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-left: 1rem;
 }
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
+.layout-content {
+  display: flex;
+  flex-grow: 1;
 }
 
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
+.layout-sidebar {
+  width: 250px;
+  border-right: 1px solid var(--surface-border);
+  padding: 1rem;
 }
 
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
+.layout-main {
+  flex-grow: 1;
+  padding: 1.5rem;
+  background-color: var(--surface-ground);
 }
 
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
+@media (max-width: 768px) {
+  .layout-content {
+    flex-direction: column;
   }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
+  .layout-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--surface-border);
   }
 }
 </style>
