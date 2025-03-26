@@ -1,6 +1,7 @@
 using FinanceTracker.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using System.ComponentModel.DataAnnotations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +15,7 @@ builder.AddSqlServerDbContext<FinanceTackerDbContext>("FinanceTracker");
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<FinanceTackerDbContext>("FinanceTrackerDbContext");
 
-// Add Swagger services
+// Add Swagger services with enhanced configuration
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -22,8 +23,16 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "Finance Tracker API",
         Version = "v1",
-        Description = "API for tracking financial transactions and accounts"
+        Description = "API for tracking financial transactions and accounts",
+        Contact = new OpenApiContact
+        {
+            Name = "Finance Tracker Team"
+        }
     });
+
+    // Add API grouping tags
+    c.TagActionsBy(api => new[] { api.GroupName });
+    c.DocInclusionPredicate((name, api) => true);
 });
 
 var app = builder.Build();
@@ -35,131 +44,356 @@ app.UseExceptionHandler();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Finance Tracker API v1"));
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Finance Tracker API v1");
+        c.DocumentTitle = "Finance Tracker API Documentation";
+        c.DefaultModelsExpandDepth(-1); // Hide schemas section by default
+    });
 }
 
+// Apply versioned API prefix
+var apiV1 = app.MapGroup("/api/v1");
+
 //Map the Api endpoints
-MapAccountTypeEndPoints();
-MapAccountEndpoints();
-MapRecurringTransactionEndpoints();
-MapTransactionEndpoints();
-MapTransactionSplitEndpoints();
-MapTransactionCategoryEndPoints();
-MapTransactionTypeEndPoints();
+MapAccountTypeEndPoints(apiV1);
+MapAccountEndpoints(apiV1);
+MapRecurringTransactionEndpoints(apiV1);
+MapTransactionEndpoints(apiV1);
+MapTransactionSplitEndpoints(apiV1);
+MapTransactionCategoryEndPoints(apiV1);
+MapTransactionTypeEndPoints(apiV1);
 
 app.MapDefaultEndpoints();
 
 app.Run();
 return;
 
-void MapAccountTypeEndPoints()
+void MapAccountTypeEndPoints(RouteGroupBuilder group)
 {
-    // Account Type Handlers
-    app.MapGet("/accountTypes", (FinanceTackerDbContext context) => context.AccountTypes.ToList());
+    var accountTypeEndpoints = group.MapGroup("/accountTypes")
+        .WithTags("Account Types")
+        .WithGroupName("Account Types");
 
-    app.MapPost("/accountTypes", async (FinanceTackerDbContext context, AccountType accountType) =>
-    {
-        context.AccountTypes.Add(accountType);
-        await context.SaveChangesAsync();
-        return Results.Created($"/accountTypes/{accountType.Id}", accountType);
-    });
+    accountTypeEndpoints.MapGet("/", async (FinanceTackerDbContext context) =>
+        {
+            var types = await context.AccountTypes.ToListAsync();
+            return Results.Ok(types);
+        })
+        .WithName("GetAllAccountTypes")
+        .WithDescription("Gets all account types")
+        .Produces<List<AccountType>>(StatusCodes.Status200OK);
+
+    accountTypeEndpoints.MapPost("/", async (FinanceTackerDbContext context, AccountType accountType) =>
+        {
+            if (accountType == null) return Results.BadRequest("Account type data is required");
+
+            var validationResults = new List<ValidationResult>();
+            if (!Validator.TryValidateObject(accountType, new ValidationContext(accountType), validationResults, true))
+            {
+                return Results.BadRequest(validationResults);
+            }
+
+            context.AccountTypes.Add(accountType);
+            await context.SaveChangesAsync();
+            return Results.Created($"/api/v1/accountTypes/{accountType.Id}", accountType);
+        })
+        .WithName("CreateAccountType")
+        .WithDescription("Creates a new account type")
+        .Produces<AccountType>(StatusCodes.Status201Created)
+        .ProducesProblem(StatusCodes.Status400BadRequest);
 }
 
-void MapAccountEndpoints()
+void MapAccountEndpoints(RouteGroupBuilder group)
 {
-    // Account Handlers
-    app.MapGet("/accounts", (FinanceTackerDbContext context) => context.Accounts.ToList());
-    app.MapGet("/accounts/{id}", async (FinanceTackerDbContext context, int id) =>
+    var accountEndpoints = group.MapGroup("/accounts")
+        .WithTags("Accounts")
+        .WithGroupName("Accounts");
+
+    accountEndpoints.MapGet("/", async (FinanceTackerDbContext context) =>
+    {
+        var accounts = await context.Accounts.ToListAsync();
+        return Results.Ok(accounts);
+    })
+    .WithName("GetAllAccounts")
+    .WithDescription("Gets all accounts")
+    .Produces<List<Account>>(StatusCodes.Status200OK);
+
+    accountEndpoints.MapGet("/{id}", async (FinanceTackerDbContext context, int id) =>
     {
         var account = await context.Accounts.FindAsync(id);
-        return account is not null ? Results.Ok(account) : Results.NotFound();
-    });
-    app.MapGet("/accounts/{id}/transactions", async (FinanceTackerDbContext context, int id) =>
+        return account is not null ?
+            Results.Ok(account) :
+            Results.NotFound($"Account with ID {id} not found");
+    })
+    .WithName("GetAccountById")
+    .WithDescription("Gets an account by its ID")
+    .Produces<Account>(StatusCodes.Status200OK)
+    .ProducesProblem(StatusCodes.Status404NotFound);
+
+    accountEndpoints.MapGet("/{id}/transactions", async (FinanceTackerDbContext context, int id) =>
     {
+        var accountExists = await context.Accounts.AnyAsync(a => a.Id == id);
+        if (!accountExists)
+            return Results.NotFound($"Account with ID {id} not found");
+
         var transactions = await context.Transactions.Where(t => t.AccountId == id).ToListAsync();
         return Results.Ok(transactions);
-    });
-    app.MapGet("/accounts/{id}/recurringTransactions", async (FinanceTackerDbContext context, int id) =>
+    })
+    .WithName("GetAccountTransactions")
+    .WithDescription("Gets all transactions for a specific account")
+    .Produces<List<Transaction>>(StatusCodes.Status200OK)
+    .ProducesProblem(StatusCodes.Status404NotFound);
+
+    accountEndpoints.MapGet("/{id}/recurringTransactions", async (FinanceTackerDbContext context, int id) =>
     {
+        var accountExists = await context.Accounts.AnyAsync(a => a.Id == id);
+        if (!accountExists)
+            return Results.NotFound($"Account with ID {id} not found");
+
         var recurringTransactions = await context.RecurringTransactions.Where(t => t.AccountId == id).ToListAsync();
         return Results.Ok(recurringTransactions);
-    });
-    app.MapPost("/accounts", async (FinanceTackerDbContext context, Account account) =>
+    })
+    .WithName("GetAccountRecurringTransactions")
+    .WithDescription("Gets all recurring transactions for a specific account")
+    .Produces<List<RecurringTransaction>>(StatusCodes.Status200OK)
+    .ProducesProblem(StatusCodes.Status404NotFound);
+
+    accountEndpoints.MapPost("/", async (FinanceTackerDbContext context, Account account) =>
     {
+        if (account == null) return Results.BadRequest("Account data is required");
+
+        var validationResults = new List<ValidationResult>();
+        if (!Validator.TryValidateObject(account, new ValidationContext(account), validationResults, true))
+        {
+            return Results.BadRequest(validationResults);
+        }
+
         context.Accounts.Add(account);
         await context.SaveChangesAsync();
-        return Results.Created($"/accounts/{account.Id}", account);
-    });
+        return Results.Created($"/api/v1/accounts/{account.Id}", account);
+    })
+    .WithName("CreateAccount")
+    .WithDescription("Creates a new account")
+    .Produces<Account>(StatusCodes.Status201Created)
+    .ProducesProblem(StatusCodes.Status400BadRequest);
 }
 
-void MapRecurringTransactionEndpoints()
+void MapRecurringTransactionEndpoints(RouteGroupBuilder group)
 {
-    // RecurringTransactions Handlers
-    app.MapGet("/recurringTransactions", (FinanceTackerDbContext context) => context.RecurringTransactions.ToList());
-    app.MapPost("/recurringTransactions",
-        async (FinanceTackerDbContext context, RecurringTransaction recurringTransaction) =>
+    var recurringTransactionsEndpoints = group.MapGroup("/recurringTransactions")
+        .WithTags("Recurring Transactions")
+        .WithGroupName("Recurring Transactions");
+
+    recurringTransactionsEndpoints.MapGet("/", async (FinanceTackerDbContext context) =>
+    {
+        var recurringTransactions = await context.RecurringTransactions.ToListAsync();
+        return Results.Ok(recurringTransactions);
+    })
+    .WithName("GetAllRecurringTransactions")
+    .WithDescription("Gets all recurring transactions")
+    .Produces<List<RecurringTransaction>>(StatusCodes.Status200OK);
+
+    recurringTransactionsEndpoints.MapPost("/", async (FinanceTackerDbContext context, RecurringTransaction recurringTransaction) =>
+    {
+        if (recurringTransaction == null) return Results.BadRequest("Recurring transaction data is required");
+
+        var validationResults = new List<ValidationResult>();
+        if (!Validator.TryValidateObject(recurringTransaction, new ValidationContext(recurringTransaction), validationResults, true))
         {
-            context.RecurringTransactions.Add(recurringTransaction);
-            await context.SaveChangesAsync();
-            return Results.Created($"/recurringTransactions/{recurringTransaction.Id}", recurringTransaction);
-        });
+            return Results.BadRequest(validationResults);
+        }
+
+        // Validate that the account exists
+        if (!await context.Accounts.AnyAsync(a => a.Id == recurringTransaction.AccountId))
+        {
+            return Results.BadRequest($"Account with ID {recurringTransaction.AccountId} does not exist");
+        }
+
+        context.RecurringTransactions.Add(recurringTransaction);
+        await context.SaveChangesAsync();
+        return Results.Created($"/api/v1/recurringTransactions/{recurringTransaction.Id}", recurringTransaction);
+    })
+    .WithName("CreateRecurringTransaction")
+    .WithDescription("Creates a new recurring transaction")
+    .Produces<RecurringTransaction>(StatusCodes.Status201Created)
+    .ProducesProblem(StatusCodes.Status400BadRequest);
 }
 
-void MapTransactionEndpoints()
+void MapTransactionEndpoints(RouteGroupBuilder group)
 {
-    // Transactions Handlers
-    app.MapGet("/transactions", (FinanceTackerDbContext context) => context.Transactions.ToList());
-    app.MapGet("/transactions/{id}", async (FinanceTackerDbContext context, int id) =>
+    var transactionEndpoints = group.MapGroup("/transactions")
+        .WithTags("Transactions")
+        .WithGroupName("Transactions");
+
+    transactionEndpoints.MapGet("/", async (FinanceTackerDbContext context) =>
+    {
+        var transactions = await context.Transactions.ToListAsync();
+        return Results.Ok(transactions);
+    })
+    .WithName("GetAllTransactions")
+    .WithDescription("Gets all transactions")
+    .Produces<List<Transaction>>(StatusCodes.Status200OK);
+
+    transactionEndpoints.MapGet("/{id}", async (FinanceTackerDbContext context, int id) =>
     {
         var transaction = await context.Transactions.FindAsync(id);
-        return transaction is not null ? Results.Ok(transaction) : Results.NotFound();
-    });
-    app.MapGet("/transactions/{id}/transactionSplits", async (FinanceTackerDbContext context, int id) =>
+        return transaction is not null ?
+            Results.Ok(transaction) :
+            Results.NotFound($"Transaction with ID {id} not found");
+    })
+    .WithName("GetTransactionById")
+    .WithDescription("Gets a transaction by its ID")
+    .Produces<Transaction>(StatusCodes.Status200OK)
+    .ProducesProblem(StatusCodes.Status404NotFound);
+
+    transactionEndpoints.MapGet("/{id}/transactionSplits", async (FinanceTackerDbContext context, int id) =>
     {
+        var transactionExists = await context.Transactions.AnyAsync(t => t.Id == id);
+        if (!transactionExists)
+            return Results.NotFound($"Transaction with ID {id} not found");
+
         var transactionSplits = await context.TransactionSplits.Where(t => t.TransactionId == id).ToListAsync();
         return Results.Ok(transactionSplits);
-    });
-    app.MapPost("/transactions", async (FinanceTackerDbContext context, Transaction transaction) =>
+    })
+    .WithName("GetTransactionSplits")
+    .WithDescription("Gets all splits for a specific transaction")
+    .Produces<List<TransactionSplit>>(StatusCodes.Status200OK)
+    .ProducesProblem(StatusCodes.Status404NotFound);
+
+    transactionEndpoints.MapPost("/", async (FinanceTackerDbContext context, Transaction transaction) =>
     {
+        if (transaction == null) return Results.BadRequest("Transaction data is required");
+
+        var validationResults = new List<ValidationResult>();
+        if (!Validator.TryValidateObject(transaction, new ValidationContext(transaction), validationResults, true))
+        {
+            return Results.BadRequest(validationResults);
+        }
+
+        // Validate that the account exists
+        if (!await context.Accounts.AnyAsync(a => a.Id == transaction.AccountId))
+        {
+            return Results.BadRequest($"Account with ID {transaction.AccountId} does not exist");
+        }
+
         context.Transactions.Add(transaction);
         await context.SaveChangesAsync();
-        return Results.Created($"/transactions/{transaction.Id}", transaction);
-    });
+        return Results.Created($"/api/v1/transactions/{transaction.Id}", transaction);
+    })
+    .WithName("CreateTransaction")
+    .WithDescription("Creates a new transaction")
+    .Produces<Transaction>(StatusCodes.Status201Created)
+    .ProducesProblem(StatusCodes.Status400BadRequest);
 }
 
-void MapTransactionSplitEndpoints()
+void MapTransactionSplitEndpoints(RouteGroupBuilder group)
 {
-    // Transaction Split Handlers
-    app.MapGet("/transactionSplits", (FinanceTackerDbContext context) => context.TransactionSplits.ToList());
-    app.MapPost("/transactionSplits", async (FinanceTackerDbContext context, TransactionSplit transactionSplit) =>
+    var transactionSplitEndpoints = group.MapGroup("/transactionSplits")
+        .WithTags("Transaction Splits")
+        .WithGroupName("Transaction Splits");
+
+    transactionSplitEndpoints.MapGet("/", async (FinanceTackerDbContext context) =>
     {
+        var transactionSplits = await context.TransactionSplits.ToListAsync();
+        return Results.Ok(transactionSplits);
+    })
+    .WithName("GetAllTransactionSplits")
+    .WithDescription("Gets all transaction splits")
+    .Produces<List<TransactionSplit>>(StatusCodes.Status200OK);
+
+    transactionSplitEndpoints.MapPost("/", async (FinanceTackerDbContext context, TransactionSplit transactionSplit) =>
+    {
+        if (transactionSplit == null) return Results.BadRequest("Transaction split data is required");
+
+        var validationResults = new List<ValidationResult>();
+        if (!Validator.TryValidateObject(transactionSplit, new ValidationContext(transactionSplit), validationResults, true))
+        {
+            return Results.BadRequest(validationResults);
+        }
+
+        // Validate that the transaction exists
+        if (!await context.Transactions.AnyAsync(t => t.Id == transactionSplit.TransactionId))
+        {
+            return Results.BadRequest($"Transaction with ID {transactionSplit.TransactionId} does not exist");
+        }
+
         context.TransactionSplits.Add(transactionSplit);
         await context.SaveChangesAsync();
-        return Results.Created($"/transactionSplits/{transactionSplit.Id}", transactionSplit);
-    });
+        return Results.Created($"/api/v1/transactionSplits/{transactionSplit.Id}", transactionSplit);
+    })
+    .WithName("CreateTransactionSplit")
+    .WithDescription("Creates a new transaction split")
+    .Produces<TransactionSplit>(StatusCodes.Status201Created)
+    .ProducesProblem(StatusCodes.Status400BadRequest);
 }
 
-void MapTransactionCategoryEndPoints()
+void MapTransactionCategoryEndPoints(RouteGroupBuilder group)
 {
-    // TransactionCategory Handlers
-    app.MapGet("/transactionCategories", (FinanceTackerDbContext context) => context.TransactionCategories.ToList());
-    app.MapPost("/transactionCategories",
-        async (FinanceTackerDbContext context, TransactionCategory transactionCategory) =>
-        {
-            context.TransactionCategories.Add(transactionCategory);
-            await context.SaveChangesAsync();
-            return Results.Created($"/transactionCategories/{transactionCategory.Id}", transactionCategory);
-        });
-}
+    var transactionCategoryEndpoints = group.MapGroup("/transactionCategories")
+        .WithTags("Transaction Categories")
+        .WithGroupName("Transaction Categories");
 
-void MapTransactionTypeEndPoints()
-{
-    // TransactionType Handlers
-    app.MapGet("/transactionTypes", (FinanceTackerDbContext context) => context.TransactionTypes.ToList());
-    app.MapPost("/transactionTypes", async (FinanceTackerDbContext context, TransactionType transactionType) =>
+    transactionCategoryEndpoints.MapGet("/", async (FinanceTackerDbContext context) =>
     {
+        var transactionCategories = await context.TransactionCategories.ToListAsync();
+        return Results.Ok(transactionCategories);
+    })
+    .WithName("GetAllTransactionCategories")
+    .WithDescription("Gets all transaction categories")
+    .Produces<List<TransactionCategory>>(StatusCodes.Status200OK);
+
+    transactionCategoryEndpoints.MapPost("/", async (FinanceTackerDbContext context, TransactionCategory transactionCategory) =>
+    {
+        if (transactionCategory == null) return Results.BadRequest("Transaction category data is required");
+
+        var validationResults = new List<ValidationResult>();
+        if (!Validator.TryValidateObject(transactionCategory, new ValidationContext(transactionCategory), validationResults, true))
+        {
+            return Results.BadRequest(validationResults);
+        }
+
+        context.TransactionCategories.Add(transactionCategory);
+        await context.SaveChangesAsync();
+        return Results.Created($"/api/v1/transactionCategories/{transactionCategory.Id}", transactionCategory);
+    })
+    .WithName("CreateTransactionCategory")
+    .WithDescription("Creates a new transaction category")
+    .Produces<TransactionCategory>(StatusCodes.Status201Created)
+    .ProducesProblem(StatusCodes.Status400BadRequest);
+}
+
+void MapTransactionTypeEndPoints(RouteGroupBuilder group)
+{
+    var transactionTypeEndpoints = group.MapGroup("/transactionTypes")
+        .WithTags("Transaction Types")
+        .WithGroupName("Transaction Types");
+
+    transactionTypeEndpoints.MapGet("/", async (FinanceTackerDbContext context) =>
+    {
+        var transactionTypes = await context.TransactionTypes.ToListAsync();
+        return Results.Ok(transactionTypes);
+    })
+    .WithName("GetAllTransactionTypes")
+    .WithDescription("Gets all transaction types")
+    .Produces<List<TransactionType>>(StatusCodes.Status200OK);
+
+    transactionTypeEndpoints.MapPost("/", async (FinanceTackerDbContext context, TransactionType transactionType) =>
+    {
+        if (transactionType == null) return Results.BadRequest("Transaction type data is required");
+
+        var validationResults = new List<ValidationResult>();
+        if (!Validator.TryValidateObject(transactionType, new ValidationContext(transactionType), validationResults, true))
+        {
+            return Results.BadRequest(validationResults);
+        }
+
         context.TransactionTypes.Add(transactionType);
         await context.SaveChangesAsync();
-        return Results.Created($"/transactionTypes/{transactionType.Id}", transactionType);
-    });
+        return Results.Created($"/api/v1/transactionTypes/{transactionType.Id}", transactionType);
+    })
+    .WithName("CreateTransactionType")
+    .WithDescription("Creates a new transaction type")
+    .Produces<TransactionType>(StatusCodes.Status201Created)
+    .ProducesProblem(StatusCodes.Status400BadRequest);
 }
