@@ -1,5 +1,6 @@
 using FinanceTracker.Data.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,10 +14,29 @@ builder.AddSqlServerDbContext<FinanceTackerDbContext>("FinanceTracker");
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<FinanceTackerDbContext>("FinanceTrackerDbContext");
 
+// Add Swagger services
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Finance Tracker API",
+        Version = "v1",
+        Description = "API for tracking financial transactions and accounts"
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
+
+// Enable Swagger and Swagger UI
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Finance Tracker API v1"));
+}
 
 //Map the Api endpoints
 MapAccountTypeEndPoints();

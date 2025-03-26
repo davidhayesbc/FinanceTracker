@@ -1,1 +1,32 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 261.76 226.69"><path d="M161.096.001l-30.225 52.351L100.647.001H-.005l130.877 226.688L261.749.001z" fill="#41b883"/><path d="M161.096.001l-30.225 52.351L100.647.001H52.346l78.526 136.01L209.398.001z" fill="#34495e"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Background Circle -->
+  <circle cx="100" cy="100" r="95" fill="#7e57c2"/>
+  
+  <!-- Money Bag Body -->
+  <path d="M100 40 C75 40 60 60 60 100 C60 150 80 170 100 170 C120 170 140 150 140 100 C140 60 125 40 100 40Z" 
+        fill="#ffca28" stroke="#ff7043" stroke-width="6" stroke-linejoin="round"/>
+  
+  <!-- Money Bag Tie -->
+  <path d="M80 50 C80 40 120 40 120 50 C120 60 80 60 80 50Z"
+        fill="#ff7043" stroke="#ff7043" stroke-width="3"/>
+  
+  <!-- Money Bag Face - Eyes -->
+  <circle cx="85" cy="95" r="8" fill="#ffffff"/>
+  <circle cx="115" cy="95" r="8" fill="#ffffff"/>
+  <circle cx="85" cy="95" r="4" fill="#333333"/>
+  <circle cx="115" cy="95" r="4" fill="#333333"/>
+  
+  <!-- Money Bag Face - Smile -->
+  <path d="M85 120 C90 130 110 130 115 120"
+        stroke="#333333" stroke-width="5" fill="none" stroke-linecap="round"/>
+  
+  <!-- Dollar Signs -->
+  <text x="75" y="145" font-family="Arial" font-size="25" font-weight="bold" fill="#009688">$</text>
+  <text x="100" y="135" font-family="Arial" font-size="25" font-weight="bold" fill="#009688">$</text>
+  <text x="120" y="150" font-family="Arial" font-size="25" font-weight="bold" fill="#009688">$</text>
+  
+  <!-- Coins at Bottom -->
+  <circle cx="60" cy="150" r="12" fill="#ffd54f" stroke="#ff6f00" stroke-width="2"/>
+  <circle cx="140" cy="150" r="12" fill="#ffd54f" stroke="#ff6f00" stroke-width="2"/>
+  <circle cx="100" cy="155" r="12" fill="#ffd54f" stroke="#ff6f00" stroke-width="2"/>
+</svg>

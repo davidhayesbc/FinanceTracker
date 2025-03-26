@@ -8,7 +8,6 @@ import Button from 'primevue/button';
 import Chart from 'primevue/chart';
 import ProgressSpinner from 'primevue/progressspinner';
 import { computed, ref } from 'vue';
-import { AccountService } from '../services/accountService';
 
 const {
   accountSummary,
@@ -22,7 +21,6 @@ const {
 
 // Individual loading states
 const accountsLoading = ref(false);
-const transactionsLoading = ref(false);
 
 const chartData = computed(() => {
   return {
