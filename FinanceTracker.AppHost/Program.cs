@@ -9,6 +9,7 @@ var sqlServer = builder.AddAzureSqlServer("sqlServer")
         o.WithDataBindMount("./SqlData");
     });
 
+
 var database = sqlServer.AddDatabase("FinanceTracker");
 
 var migrationService = builder.AddProject<FinanceTracker_MigrationService>("migrationservice")
