@@ -99,7 +99,20 @@ public class Worker(
                 {
                     Type = "BalanceUpdate"
                 }, cancellationToken);
+            // Currencies
+            if (!await dbContext.Currencies.AnyAsync(c => c.Symbol == "CAD", cancellationToken))
+                await dbContext.Currencies.AddAsync(new Currency
+                {
+                    Name = "Canadian Dollar",
+                    Symbol = "CAD"
+                }, cancellationToken);
 
+            if (!await dbContext.Currencies.AnyAsync(c => c.Symbol == "USD", cancellationToken))
+                await dbContext.Currencies.AddAsync(new Currency
+                {
+                    Name = "US Dollar",
+                    Symbol = "USD"
+                }, cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         });
