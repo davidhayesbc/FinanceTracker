@@ -87,6 +87,18 @@ public class Worker(
                     Type = "Investment"
                 }, cancellationToken);
 
+            if (!await dbContext.AccountTypes.AnyAsync(at => at.Type == "Property", cancellationToken))
+                await dbContext.AccountTypes.AddAsync(new AccountType
+                {
+                    Type = "Property"
+                }, cancellationToken);
+
+            if (!await dbContext.AccountTypes.AnyAsync(at => at.Type == "Mortgage", cancellationToken))
+                await dbContext.AccountTypes.AddAsync(new AccountType
+                {
+                    Type = "Mortgage"
+                }, cancellationToken);
+
             // Transaction Types
             if (!await dbContext.TransactionTypes.AnyAsync(tt => tt.Type == "Change", cancellationToken))
                 await dbContext.TransactionTypes.AddAsync(new TransactionType
@@ -114,6 +126,24 @@ public class Worker(
                     Name = "US Dollar",
                     Symbol = "USD",
                     DisplaySymbol = "$"
+                }, cancellationToken);
+            // Securities
+            if (!await dbContext.Securities.AnyAsync(s => s.Symbol == "CAD-CASH", cancellationToken))
+                await dbContext.Securities.AddAsync(new Security
+                {
+                    Name = "Canadian Cash",
+                    Symbol = "CAD",
+                    CurrencyId = dbContext.Currencies.First(c => c.Symbol == "CAD").Id,
+                    SecurityType = "Cash"
+                }, cancellationToken);
+
+            if (!await dbContext.Securities.AnyAsync(s => s.Symbol == "USD-CASH", cancellationToken))
+                await dbContext.Securities.AddAsync(new Security
+                {
+                    Name = "US Cash",
+                    Symbol = "USD",
+                    CurrencyId = dbContext.Currencies.First(c => c.Symbol == "USD").Id,
+                    SecurityType = "Cash"
                 }, cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
