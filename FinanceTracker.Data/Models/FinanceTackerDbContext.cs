@@ -188,6 +188,7 @@ public partial class FinanceTackerDbContext : DbContext
 
             entity.Property(e => e.Name).HasMaxLength(50);
             entity.Property(e => e.Symbol).HasMaxLength(5);
+            entity.Property(e => e.DisplaySymbol).HasMaxLength(10);
 
             entity.HasIndex(e => e.Symbol).IsUnique().HasDatabaseName("UX_Currency_Symbol");
         });

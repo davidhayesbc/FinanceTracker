@@ -10,6 +10,8 @@ public partial class Currency
 
   public string Symbol { get; set; } = null!;
 
+  public string DisplaySymbol { get; set; } = null!;
+
   public virtual ICollection<Account> Accounts { get; set; } = new List<Account>();
 
   public virtual ICollection<Security> Securities { get; set; } = new List<Security>();

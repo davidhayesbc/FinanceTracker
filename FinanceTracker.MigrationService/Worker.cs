@@ -104,14 +104,16 @@ public class Worker(
                 await dbContext.Currencies.AddAsync(new Currency
                 {
                     Name = "Canadian Dollar",
-                    Symbol = "CAD"
+                    Symbol = "CAD",
+                    DisplaySymbol = "$"
                 }, cancellationToken);
 
             if (!await dbContext.Currencies.AnyAsync(c => c.Symbol == "USD", cancellationToken))
                 await dbContext.Currencies.AddAsync(new Currency
                 {
                     Name = "US Dollar",
-                    Symbol = "USD"
+                    Symbol = "USD",
+                    DisplaySymbol = "$"
                 }, cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
