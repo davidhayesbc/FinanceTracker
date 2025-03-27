@@ -28,6 +28,14 @@ public partial class FinanceTackerDbContext : DbContext
 
     public virtual DbSet<TransactionType> TransactionTypes { get; set; }
 
+    public virtual DbSet<Currency> Currencies { get; set; }
+
+    public virtual DbSet<Security> Securities { get; set; }
+
+    public virtual DbSet<Price> Prices { get; set; }
+
+    public virtual DbSet<FxRate> FxRates { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>
@@ -43,6 +51,11 @@ public partial class FinanceTackerDbContext : DbContext
                 .HasForeignKey(d => d.AccountTypeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Account_ToAccountType");
+
+            entity.HasOne(d => d.Currency).WithMany(p => p.Accounts)
+                .HasForeignKey(d => d.CurrencyId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Account_ToCurrency");
         });
 
         modelBuilder.Entity<AccountPeriod>(entity =>
@@ -165,6 +178,80 @@ public partial class FinanceTackerDbContext : DbContext
             entity.Property(e => e.Type).HasMaxLength(50);
 
             entity.HasIndex(e => e.Type).IsUnique().HasDatabaseName("UX_TransactionType_Type");
+        });
+
+        modelBuilder.Entity<Currency>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_Currency");
+
+            entity.ToTable("Currency");
+
+            entity.Property(e => e.Code).HasMaxLength(3);
+            entity.Property(e => e.Name).HasMaxLength(50);
+            entity.Property(e => e.Symbol).HasMaxLength(5);
+
+            entity.HasIndex(e => e.Code).IsUnique().HasDatabaseName("UX_Currency_Code");
+        });
+
+        modelBuilder.Entity<Security>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_Security");
+
+            entity.ToTable("Security");
+
+            entity.Property(e => e.Symbol).HasMaxLength(20);
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.ISIN).HasMaxLength(12);
+            entity.Property(e => e.SecurityType).HasMaxLength(20);
+
+            entity.HasIndex(e => e.Symbol).IsUnique().HasDatabaseName("UX_Security_Symbol");
+            entity.HasIndex(e => e.ISIN).HasDatabaseName("IX_Security_ISIN");
+
+            entity.HasOne(d => d.Currency).WithMany(p => p.Securities)
+                .HasForeignKey(d => d.CurrencyId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Security_ToCurrency");
+        });
+
+        modelBuilder.Entity<Price>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_Price");
+
+            entity.ToTable("Price");
+
+            entity.Property(e => e.ClosePrice).HasColumnType("decimal(18, 6)");
+
+            entity.HasIndex(e => new { e.SecurityId, e.Date }).IsUnique().HasDatabaseName("UX_Price_SecurityId_Date");
+
+            entity.HasOne(d => d.Security).WithMany(p => p.Prices)
+                .HasForeignKey(d => d.SecurityId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Price_ToSecurity");
+        });
+
+        modelBuilder.Entity<FxRate>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_FxRate");
+
+            entity.ToTable("FxRate");
+
+            entity.Property(e => e.Rate).HasColumnType("decimal(18, 6)");
+
+            entity.HasIndex(e => new { e.FromCurrencyId, e.ToCurrencyId, e.Date })
+                .IsUnique()
+                .HasDatabaseName("UX_FxRate_Currencies_Date");
+
+            entity.HasOne(d => d.FromCurrencyNavigation)
+                .WithMany(p => p.BaseCurrencyRates)
+                .HasForeignKey(d => d.FromCurrencyId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_FxRate_ToFromCurrency");
+
+            entity.HasOne(d => d.ToCurrencyNavigation)
+                .WithMany(p => p.CounterCurrencyRates)
+                .HasForeignKey(d => d.ToCurrencyId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_FxRate_ToToCurrency");
         });
 
         OnModelCreatingPartial(modelBuilder);
