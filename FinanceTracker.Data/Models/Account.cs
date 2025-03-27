@@ -20,4 +20,6 @@ public partial class Account
     public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
 
     public virtual ICollection<RecurringTransaction> RecurringTransactions { get; set; } = new List<RecurringTransaction>();
+    
+    public virtual ICollection<AccountPeriod> AccountPeriods { get; set; } = new List<AccountPeriod>();
 }

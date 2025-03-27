@@ -50,8 +50,15 @@ public partial class FinanceTackerDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK_AccountPeriod");
 
             entity.ToTable("AccountPeriod");
-        });
 
+            entity.Property(e => e.OpeningBalance).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ClosingBalance).HasColumnType("decimal(18, 2)");
+
+            entity.HasOne(d => d.Account).WithMany(p => p.AccountPeriods)
+                .HasForeignKey(d => d.AccountId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AccountPeriod_ToAccount");
+        });
 
         modelBuilder.Entity<AccountType>(entity =>
         {

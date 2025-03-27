@@ -16,5 +16,7 @@ public partial class AccountPeriod
     public DateOnly PeriodEnd { get; set; }
     public DateOnly PeriodCloseDate { get; set; }
 
+    public virtual Account Account { get; set; } = null!;
+
     //TODO: Figure out how to do a Mapping table in EF Core (for transactions)
 }
