@@ -21,6 +21,18 @@
     },
     {
       "file": "./docs/database-styles.md"
+    },
+    {
+      "file": "./docs/azure-infrastructure-styles.md"
+    },
+    {
+      "file": "./docs/api-design-styles.md"
+    },
+    {
+      "file": "./docs/testing-styles.md"
+    },
+    {
+      "file": "./docs/vue-state-management-styles.md"
     }
   ]
 }
