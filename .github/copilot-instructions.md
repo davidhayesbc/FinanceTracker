@@ -14,7 +14,6 @@ This project is a web application that allows users to manage their personal fin
 - **Comments:** Add comments to explain complex logic, non-obvious decisions, or public API contracts.
   - C#: Use XML documentation comments for public types and members.
   - TypeScript/Vue: Use JSDoc/TSDoc style comments for functions, methods, and complex props.
-- **Async/Await:** Utilize `async/await` for all I/O-bound and genuinely asynchronous operations in both backend and frontend code.
 
 ## C# Backend (FinanceTracker.ApiService, FinanceTracker.Data, etc.)
 
