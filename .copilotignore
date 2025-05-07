@@ -1,0 +1,80 @@
+# GitHub Copilot Ignore File
+# This file tells Copilot which files and directories to ignore.
+# It helps improve suggestions by focusing on relevant source code.
+# For more information: https://docs.github.com/en/copilot/configuring-github-copilot/configuring-github-copilot-in-your-environment#configuring-ignored-files-for-github-copilot
+
+# General build artifacts and temporary files
+**/bin/
+**/obj/
+**/.tmp/
+**/.temp/
+**/.cache/
+**/*.cache
+
+# Operating System specific files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+*.log.*
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency directories
+**/node_modules/
+
+# .NET specific
+# User-specific settings and temporary files
+*.csproj.user
+*.vbproj.user
+*.fsproj.user
+*.sln.docstates # Visual Studio solution user options
+*.suo           # Visual Studio solution user options (older format)
+TestResults/    # Test results directory
+*.pdb           # Program database files (debug symbols)
+*.nupkg         # NuGet package files
+
+# Local development settings that should not influence Copilot suggestions
+# These often contain machine-specific or sensitive information.
+appsettings.Development.json
+**/Properties/launchSettings.json # Can contain user-specific launch profiles, often better for Copilot to ignore.
+
+# Frontend specific (Vue, Vite, Node.js)
+# Build output directories
+dist/ # Standard for Vite/Vue and other frontend builds
+.output/ # Common for some frameworks
+.vitepress/dist # If using VitePress
+.nuxt/ # If using Nuxt.js
+.next/ # If using Next.js
+.svelte-kit/ # If using SvelteKit
+
+# Local environment variables
+.env.local
+.env.*.local
+
+# ESLint cache
+.eslintcache
+
+# Coverage reports
+**/coverage/
+
+# Project-specific ignores from your workspace structure
+# Sensitive data in the AppHost project
+FinanceTracker.AppHost/SqlData/secrets/
+
+# IDE-specific folders
+# These often contain user-specific settings.
+# If your .vscode/ contains shared configurations like tasks.json or launch.json
+# that are important for Copilot to understand your project, consider commenting this out
+# or using more specific patterns (e.g., .vscode/*.db, .vscode/settings.json).
+# Copilot is already aware of your tasks via other means.
+# .vscode/
+# .idea/ # For JetBrains IDEs
+
+# Azure specific (if generated locally and not meant for Copilot's context)
+# .azure/ # Contains local Azure Developer CLI (AZD) environment settings.
+          # These are usually gitignored and might not be relevant for general code suggestions
+          # unless you are specifically working on AZD configurations.
