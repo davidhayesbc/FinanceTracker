@@ -2,49 +2,62 @@
   "version": "0.2.0",
   "configurations": [
     {
-      // Use IntelliSense to find out which attributes exist for C# debugging
-      // Use hover for the description of the existing attributes
-      // For further information visit https://github.com/dotnet/vscode-csharp/blob/main/debugger-launchjson.md
-      "name": ".NET Core Launch (console)",
+      "name": ".NET Aspire (AppHost)",
       "type": "coreclr",
       "request": "launch",
-      "preLaunchTask": "build",
-      // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/FinanceTracker.AppHost/bin/Debug/net9.0/FinanceTracker.AppHost.dll",
       "args": [],
       "cwd": "${workspaceFolder}/FinanceTracker.AppHost",
-      // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
-      "console": "internalConsole",
-      "stopAtEntry": false
-    },
-    {
-      "name": ".NET Core Attach",
-      "type": "coreclr",
-      "request": "attach"
-    },
-    {
-      "name": "Aspire Dashboard",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "program": "${workspaceFolder}/Aspire.Dashboard/bin/Debug/net9.0/Aspire.Dashboard.dll",
-      "args": [],
-      "cwd": "${workspaceFolder}/Aspire.Dashboard",
       "stopAtEntry": false,
       "env": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DOTNET_ENVIRONMENT": "Development",
+        "DOTNET_LAUNCH_PROFILE": "http"
+      },
+      "logging": {
+        "moduleLoad": false
       },
       "serverReadyAction": {
         "action": "openExternally",
-        "pattern": "Now listening on: (https?://localhost:\\d+)",
-        "uriFormat": "%s"
+        "pattern": "\\bNow listening on:\\s+https://localhost:([0-9]+)",
+        "uriFormat": "https://localhost:%s"
+      },
+      "preLaunchTask": "build",
+      "presentation": {
+        "hidden": false,
+        "group": "Backend",
+        "order": 1
       }
-    }
-  ],
-  "compounds": [
+    },
     {
-      "name": "Launch Dashboard",
-      "configurations": ["Aspire Dashboard"]
+      "name": "Launch Frontend (FinanceTracker.Web)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/FinanceTracker.Web",
+      "sourceMaps": true,
+      // Optional: Uncomment and set a path for a separate Chrome debug profile
+      // "userDataDir": "${workspaceFolder}/.vscode/chrome-debug-data",
+      // Note: This configuration assumes the Vite dev server is started by Aspire or manually.
+      // If you want this launch configuration to also start the Vite server,
+      // you would need to define an npm task in tasks.json (e.g., "npm: dev --prefix FinanceTracker.Web")
+      // and add: "preLaunchTask": "npm: dev - FinanceTracker.Web"
+      "presentation": {
+        "hidden": false,
+        "group": "Frontend",
+        "order": 1
+      }
+    },
+    {
+      "name": ".NET Core Attach to Process",
+      "type": "coreclr",
+      "request": "attach",
+      "processId": "${command:pickProcess}",
+      "presentation": {
+        "hidden": false,
+        "group": ".NET",
+        "order": 1
+      }
     }
   ]
 }
