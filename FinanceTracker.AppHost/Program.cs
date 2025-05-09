@@ -20,6 +20,7 @@ var migrationService = builder.AddProject<FinanceTracker_MigrationService>("migr
 var apiService = builder.AddProject<FinanceTracker_ApiService>("apiservice")
     .WithReference(database)
     .WithHttpHealthCheck("/health")
+    .WithEndpoint(targetPort: 7350, scheme: "https", name: "https") // Explicitly set targetPort for HTTPS
     .WaitFor(sqlServer)
     .WaitForCompletion(migrationService);
 

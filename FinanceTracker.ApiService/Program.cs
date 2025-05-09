@@ -38,6 +38,7 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseHttpsRedirection(); // Add this line
 app.UseExceptionHandler();
 
 // Enable Swagger and Swagger UI
