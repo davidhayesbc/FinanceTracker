@@ -180,7 +180,7 @@ public class Worker(
                     await dbContext.Securities.AddAsync(new Security
                     {
                         Name = "Canadian Cash",
-                        Symbol = "CAD",
+                        Symbol = "CAD-CASH",
                         CurrencyId = dbContext.Currencies.First(c => c.Symbol == "CAD").Id,
                         SecurityType = "Cash"
                     }, cancellationToken);
@@ -189,7 +189,7 @@ public class Worker(
                     await dbContext.Securities.AddAsync(new Security
                     {
                         Name = "US Cash",
-                        Symbol = "USD",
+                        Symbol = "USD-CASH",
                         CurrencyId = dbContext.Currencies.First(c => c.Symbol == "USD").Id,
                         SecurityType = "Cash"
                     }, cancellationToken);
