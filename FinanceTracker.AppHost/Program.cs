@@ -8,6 +8,7 @@ var sqlServer = builder.AddAzureSqlServer("sqlServer")
         o.WithLifetime(ContainerLifetime.Persistent);
         o.WithDataBindMount("./SqlData");
         o.WithEndpoint(port: 1433, targetPort: 1433, name: "sql", scheme: "tcp", isExternal: true);
+        o.WithImagePullPolicy(ImagePullPolicy.Always);
     });
 
 var database = sqlServer.AddDatabase("FinanceTracker");
