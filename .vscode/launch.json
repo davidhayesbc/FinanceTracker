@@ -36,12 +36,6 @@
       "url": "http://localhost:5173",
       "webRoot": "${workspaceFolder}/FinanceTracker.Web",
       "sourceMaps": true,
-      // Optional: Uncomment and set a path for a separate Chrome debug profile
-      // "userDataDir": "${workspaceFolder}/.vscode/chrome-debug-data",
-      // Note: This configuration assumes the Vite dev server is started by Aspire or manually.
-      // If you want this launch configuration to also start the Vite server,
-      // you would need to define an npm task in tasks.json (e.g., "npm: dev --prefix FinanceTracker.Web")
-      // and add: "preLaunchTask": "npm: dev - FinanceTracker.Web"
       "presentation": {
         "hidden": false,
         "group": "Frontend",

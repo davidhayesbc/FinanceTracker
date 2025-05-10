@@ -1,4 +1,4 @@
-﻿@FinanceTracker.ApiService_HostAddress = https://localhost:7350
+﻿@FinanceTracker.ApiService_HostAddress = https://localhost:6080
 
 GET {{FinanceTracker.ApiService_HostAddress}}/accounts
 

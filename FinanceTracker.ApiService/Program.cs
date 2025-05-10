@@ -38,7 +38,7 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-app.UseHttpsRedirection(); // Add this line
+app.UseHttpsRedirection();
 app.UseExceptionHandler();
 
 // Enable Swagger and Swagger UI
@@ -64,7 +64,7 @@ MapTransactionEndpoints(apiV1);
 MapTransactionSplitEndpoints(apiV1);
 MapTransactionCategoryEndPoints(apiV1);
 MapTransactionTypeEndPoints(apiV1);
-
+ 
 app.MapDefaultEndpoints();
 
 app.Run();
