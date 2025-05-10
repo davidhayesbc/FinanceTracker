@@ -10,7 +10,7 @@ This document outlines styling and coding conventions for database interactions 
 - **Migrations:**
   - All database schema changes **must** be managed via EF Core migrations in the `FinanceTracker.Data` project.
   - Ensure migration names are descriptive (e.g., `AddUserEmailVerificationToken`, `IncreaseTransactionDescriptionLength`).
-- \*\*Data Models (Entities - in `FinanceTracker.Data/Models/`):
+- **Data Models (Entities - in `FinanceTracker.Data/Models/`)**:
   - Properties should be `PascalCase`.
   - Use appropriate data annotations for validation and EF Core mapping where necessary (e.g., `[Required]`, `[MaxLength(100)]`, `[Column(TypeName = "decimal(18,2)")]`).
   - Define navigation properties clearly.
@@ -21,7 +21,7 @@ This document outlines styling and coding conventions for database interactions 
 - **Concurrency Control:** Implement concurrency control mechanisms (e.g., optimistic concurrency using row versioning/timestamp) for entities that are likely to be updated concurrently.
 - **Transactions:** Use explicit database transactions (`DbContext.Database.BeginTransactionAsync()`) when multiple operations need to be atomic.
 - **SQL Server Specifics:**
-  - \*\*Naming Conventions (if directly interacting or for reference):
+  - **_Naming Conventions (if directly interacting or for reference)_**:
     - Tables: `PascalCase`, plural (e.g., `UserProfiles`, `Transactions`).
     - Columns: `PascalCase` (e.g., `FirstName`, `TransactionDate`).
 

@@ -27,7 +27,7 @@ This document outlines conventions for Azure infrastructure, Bicep templates, `a
 ## Deployment
 
 - **CI/CD:** (Outline of the CI/CD process, tools used, and any specific conventions for pipeline definitions.)
-- **Secrets Management:** (How secrets are handled during deployment, e.g., GitHub Actions secrets, Azure Key Vault integration.)
+- **Secrets Management:** Secrets shoud be tored in Azure Key Vault integration.
 
 ---
 

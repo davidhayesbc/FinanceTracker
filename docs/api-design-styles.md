@@ -6,7 +6,7 @@ This document outlines conventions for designing, implementing, and documenting 
 
 - **RESTful Conventions:** Adhere to standard REST principles (use of HTTP verbs, status codes, resource-oriented URLs).
 - **Idempotency:** Ensure PUT, DELETE, and PATCH operations are idempotent where applicable.
-- **Versioning:** (Specify API versioning strategy, e.g., URL-based `v1/`, header-based).
+- **Versioning:** URL-based `v1/`.
 - **Statelessness:** APIs should be stateless.
 
 ## URL Structure

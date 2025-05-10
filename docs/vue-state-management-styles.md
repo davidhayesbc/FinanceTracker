@@ -2,7 +2,9 @@
 
 This document outlines conventions for state management within the Vue.js frontend (`FinanceTracker.Web`) of the FinanceTracker project.
 
-**(User: Please specify the state management library you intend to use, e.g., Pinia, Vuex, or if you plan to use simple Vue 3 Composables for state management. The content below is a general placeholder.)**
+## State Management
+
+- **State Management Library:** Use Pinia
 
 ## General Principles
 
@@ -47,4 +49,4 @@ This document outlines conventions for state management within the Vue.js fronte
 
 ---
 
-_This guide should be updated as project standards evolve. Remember to replace placeholders with specifics for your chosen state management solution._
+_This guide should be updated as project standards evolve._
