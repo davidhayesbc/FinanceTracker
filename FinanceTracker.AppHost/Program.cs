@@ -6,8 +6,7 @@ var sqlServer = builder.AddAzureSqlServer("sqlServer")
     .RunAsContainer(o =>
     {
         o.WithLifetime(ContainerLifetime.Persistent);
-        o.WithDataBindMount("./SqlData");
-        o.WithEndpoint(port: 1433, targetPort: 1433, name: "sql", scheme: "tcp", isExternal: true);
+        o.WithDataBindMount("./SqlData"); //Use 127.0.0.1 to connect with SSMS
         o.WithImagePullPolicy(ImagePullPolicy.Always);
     });
 
@@ -25,6 +24,7 @@ var apiService = builder.AddProject<FinanceTracker_ApiService>("apiservice")
 
 var webApp = builder.AddNpmApp("web", "../FinanceTracker.Web", "dev")
     .WithReference(apiService)
-    .WaitForCompletion(migrationService);
+    .WaitForCompletion(migrationService)
+    .WithExternalHttpEndpoints();
 
 builder.Build().Run();

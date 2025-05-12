@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "FinanceTracker.Web": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "http://localhost:5173",
+      "environmentVariables": {
+        "VITE_API_BASE_URL": "http://localhost:5200",
+        "VITE_USE_MOCK_API": "false"
+      },
+      "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/ws"
+    }
+  }
+}
