@@ -192,7 +192,15 @@ const refreshData = async () => {
         <div class="col-12">
           <Panel header="Net Worth Growth (Last 12 Months)">
             <div class="chart-container">
-              <Chart type="line" :data="netWorthData" :options="netWorthOptions" />
+              <Chart
+                v-if="netWorthData.labels && netWorthData.labels.length > 0"
+                type="line"
+                :data="netWorthData"
+                :options="netWorthOptions"
+              />
+              <div v-else-if="!loading" class="flex justify-content-center align-items-center h-full">
+                <p>No net worth data to display.</p>
+              </div>
             </div>
           </Panel>
         </div>
@@ -224,7 +232,15 @@ const refreshData = async () => {
         <div class="col-12 lg:col-6">
           <Panel header="Spending by Category" class="panel-equal-height">
             <div class="chart-container spending-chart">
-              <Chart type="doughnut" :data="chartData" :options="chartOptions" />
+              <Chart
+                v-if="chartData.labels && chartData.labels.length > 0"
+                type="doughnut"
+                :data="chartData"
+                :options="chartOptions"
+              />
+              <div v-else-if="!loading" class="flex justify-content-center align-items-center h-full">
+                <p>No spending data to display.</p>
+              </div>
             </div>
           </Panel>
         </div>

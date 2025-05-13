@@ -10,5 +10,13 @@
     {
       "path": "./tsconfig.vitest.json"
     }
-  ]
+  ],
+  "compilerOptions": {
+    "sourceMap": true,
+    "outDir": "./dist",
+    "strict": true,
+    "module": "esnext",
+    "target": "esnext",
+    "moduleResolution": "node"
+  }
 }
