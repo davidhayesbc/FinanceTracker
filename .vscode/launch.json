@@ -52,6 +52,70 @@
         "group": ".NET",
         "order": 1
       }
+    },
+    {
+      "name": "Launch Vite Dev Server (Standalone Debug)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/FinanceTracker.Web/node_modules/vite/bin/vite.js",
+      "args": [],
+      "env": {
+        "NODE_OPTIONS": "--inspect"
+      },
+      "cwd": "${workspaceFolder}/FinanceTracker.Web",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "sourceMaps": true,
+      "trace": true,
+      "presentation": {
+        "hidden": false,
+        "group": "Frontend Standalone",
+        "order": 1
+      }
+    },
+    {
+      "name": "Attach to Frontend Node (Vite)",
+      "type": "node",
+      "request": "attach",
+      "port": 9229,
+      "address": "127.0.0.1",
+      "restart": false,
+      "sourceMaps": true,
+      "trace": true,
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "cwd": "${workspaceFolder}/FinanceTracker.Web",
+      "timeout": 30000,
+      "presentation": {
+        "hidden": false,
+        "group": "Frontend",
+        "order": 2
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Debug Aspire App + Frontend (Web)",
+      "configurations": [
+        ".NET Aspire (AppHost)",
+        "Launch Frontend (FinanceTracker.Web)"
+      ],
+      "stopAll": true,
+      "presentation": {
+        "order": 1
+      }
+    },
+    {
+      "name": "Debug Aspire App + Frontend (Attach)",
+      "configurations": [
+        ".NET Aspire (AppHost)",
+        "Attach to Frontend Node (Vite)"
+      ],
+      "stopAll": true,
+      "presentation": {
+        "order": 2
+      }
     }
   ]
 }

@@ -3,5 +3,8 @@
     "primeflex": "^4.0.0",
     "primeicons": "^7.0.0",
     "primevue": "^4.3.2"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }
