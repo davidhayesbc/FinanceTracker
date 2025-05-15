@@ -91,6 +91,12 @@ public class Worker(
                 if (!await dbContext.AccountTypes.AnyAsync(at => at.Type == "Mortgage", cancellationToken))
                     await dbContext.AccountTypes.AddAsync(new AccountType { Type = "Mortgage" }, cancellationToken);
 
+                if (!await dbContext.AccountTypes.AnyAsync(at => at.Type == "Credit Card", cancellationToken))
+                    await dbContext.AccountTypes.AddAsync(new AccountType { Type = "Credit Card" }, cancellationToken);
+
+                if (!await dbContext.AccountTypes.AnyAsync(at => at.Type == "Line of Credit", cancellationToken))
+                    await dbContext.AccountTypes.AddAsync(new AccountType { Type = "Line of Credit" }, cancellationToken);
+
                 await dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
                 Console.WriteLine("SeedAccountTypesAsync: Account types seeded successfully.");

@@ -14,7 +14,8 @@ This project is a web application that allows users to manage their personal fin
 - **Comments:** Add comments to explain complex logic, non-obvious decisions, or public API contracts.
   - C#: Use XML documentation comments for public types and members.
   - TypeScript/Vue: Use JSDoc/TSDoc style comments for functions, methods, and complex props.
-
+  - Do not comment out old code, remove it instead.
+- **Error Handling:** Use appropriate error handling mechanisms.
 ## C# Backend (FinanceTracker.ApiService, FinanceTracker.Data, etc.)
 
 Refer to `docs/csharp-styles.md` for C# specific coding conventions.

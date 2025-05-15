@@ -8,6 +8,7 @@ var sqlServer = builder.AddAzureSqlServer("sqlServer")
         o.WithLifetime(ContainerLifetime.Persistent);
         o.WithDataBindMount("./SqlData"); //Use 127.0.0.1 to connect with SSMS
         o.WithImagePullPolicy(ImagePullPolicy.Always);
+        o.WithEndpoint(targetPort: 1433, port: 1433, name: "sql"); // Expose SQL Server port to host for SSMS access
     });
 
 var database = sqlServer.AddDatabase("FinanceTracker");
