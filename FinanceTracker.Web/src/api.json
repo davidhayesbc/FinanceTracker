@@ -1,0 +1,1178 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "Finance Tracker API",
+    "description": "API for tracking financial transactions and accounts",
+    "contact": {
+      "name": "Finance Tracker Team"
+    },
+    "version": "v1"
+  },
+  "paths": {
+    "/api/v1/accountTypes": {
+      "get": {
+        "tags": [
+          "Account Types"
+        ],
+        "description": "Gets all account types",
+        "operationId": "GetAllAccountTypes",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AccountType"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Account Types"
+        ],
+        "description": "Creates a new account type",
+        "operationId": "CreateAccountType",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountType"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountType"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts": {
+      "get": {
+        "tags": [
+          "Accounts"
+        ],
+        "description": "Gets all accounts",
+        "operationId": "GetAllAccounts",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Account"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Accounts"
+        ],
+        "description": "Creates a new account",
+        "operationId": "CreateAccount",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Account"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts/{id}": {
+      "get": {
+        "tags": [
+          "Accounts"
+        ],
+        "description": "Gets an account by its ID",
+        "operationId": "GetAccountById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts/{id}/transactions": {
+      "get": {
+        "tags": [
+          "Accounts"
+        ],
+        "description": "Gets all transactions for a specific account",
+        "operationId": "GetAccountTransactions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Transaction"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts/{id}/recurringTransactions": {
+      "get": {
+        "tags": [
+          "Accounts"
+        ],
+        "description": "Gets all recurring transactions for a specific account",
+        "operationId": "GetAccountRecurringTransactions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RecurringTransaction"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/recurringTransactions": {
+      "get": {
+        "tags": [
+          "Recurring Transactions"
+        ],
+        "description": "Gets all recurring transactions",
+        "operationId": "GetAllRecurringTransactions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RecurringTransaction"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Recurring Transactions"
+        ],
+        "description": "Creates a new recurring transaction",
+        "operationId": "CreateRecurringTransaction",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecurringTransaction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecurringTransaction"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/transactionCategories": {
+      "get": {
+        "tags": [
+          "Transaction Categories"
+        ],
+        "description": "Gets all transaction categories",
+        "operationId": "GetAllTransactionCategories",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TransactionCategory"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Transaction Categories"
+        ],
+        "description": "Creates a new transaction category",
+        "operationId": "CreateTransactionCategory",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionCategory"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionCategory"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/transactionSplits": {
+      "get": {
+        "tags": [
+          "Transaction Splits"
+        ],
+        "description": "Gets all transaction splits",
+        "operationId": "GetAllTransactionSplits",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TransactionSplit"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Transaction Splits"
+        ],
+        "description": "Creates a new transaction split",
+        "operationId": "CreateTransactionSplit",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionSplit"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionSplit"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/transactionTypes": {
+      "get": {
+        "tags": [
+          "Transaction Types"
+        ],
+        "description": "Gets all transaction types",
+        "operationId": "GetAllTransactionTypes",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TransactionType"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Transaction Types"
+        ],
+        "description": "Creates a new transaction type",
+        "operationId": "CreateTransactionType",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionType"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionType"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/transactions": {
+      "get": {
+        "tags": [
+          "Transactions"
+        ],
+        "description": "Gets all transactions",
+        "operationId": "GetAllTransactions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Transaction"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Transactions"
+        ],
+        "description": "Creates a new transaction",
+        "operationId": "CreateTransaction",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Transaction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transaction"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/transactions/{id}": {
+      "get": {
+        "tags": [
+          "Transactions"
+        ],
+        "description": "Gets a transaction by its ID",
+        "operationId": "GetTransactionById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transaction"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/transactions/{id}/transactionSplits": {
+      "get": {
+        "tags": [
+          "Transactions"
+        ],
+        "description": "Gets all splits for a specific transaction",
+        "operationId": "GetTransactionSplits",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TransactionSplit"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Account": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "openingBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "openDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "accountTypeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "currencyId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "accountType": {
+            "$ref": "#/components/schemas/AccountType"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/Currency"
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            },
+            "nullable": true
+          },
+          "recurringTransactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecurringTransaction"
+            },
+            "nullable": true
+          },
+          "accountPeriods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccountPeriod"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AccountPeriod": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "accountId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openingBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "closingBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "periodStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "periodEnd": {
+            "type": "string",
+            "format": "date"
+          },
+          "periodCloseDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "account": {
+            "$ref": "#/components/schemas/Account"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AccountType": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Account"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Currency": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "symbol": {
+            "type": "string",
+            "nullable": true
+          },
+          "displaySymbol": {
+            "type": "string",
+            "nullable": true
+          },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Account"
+            },
+            "nullable": true
+          },
+          "securities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Security"
+            },
+            "nullable": true
+          },
+          "baseCurrencyRates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FxRate"
+            },
+            "nullable": true
+          },
+          "counterCurrencyRates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FxRate"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "FxRate": {
+        "required": [
+          "fromCurrencyId",
+          "rate",
+          "toCurrencyId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fromCurrencyId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "toCurrencyId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rate": {
+            "type": "number",
+            "format": "double"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "fromCurrencyNavigation": {
+            "$ref": "#/components/schemas/Currency"
+          },
+          "toCurrencyNavigation": {
+            "$ref": "#/components/schemas/Currency"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Price": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "securityId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "closePrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "security": {
+            "$ref": "#/components/schemas/Security"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": {
+          
+        }
+      },
+      "RecurringTransaction": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "amountVariancePercentage": {
+            "type": "number",
+            "format": "double"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "recurrenceCronExpression": {
+            "type": "string",
+            "nullable": true
+          },
+          "accountId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "transactionTypeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "categoryId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "account": {
+            "$ref": "#/components/schemas/Account"
+          },
+          "category": {
+            "$ref": "#/components/schemas/TransactionCategory"
+          },
+          "transactionType": {
+            "$ref": "#/components/schemas/TransactionType"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Security": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "symbol": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "isin": {
+            "type": "string",
+            "nullable": true
+          },
+          "currencyId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "securityType": {
+            "type": "string",
+            "nullable": true
+          },
+          "currency": {
+            "$ref": "#/components/schemas/Currency"
+          },
+          "prices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Price"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Transaction": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "transactionDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "accountId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "transactionTypeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "categoryId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "account": {
+            "$ref": "#/components/schemas/Account"
+          },
+          "category": {
+            "$ref": "#/components/schemas/TransactionCategory"
+          },
+          "transactionSplits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransactionSplit"
+            },
+            "nullable": true
+          },
+          "transactionType": {
+            "$ref": "#/components/schemas/TransactionType"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TransactionCategory": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "category": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "transactionSplits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransactionSplit"
+            },
+            "nullable": true
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            },
+            "nullable": true
+          },
+          "recurringTransactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecurringTransaction"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "TransactionSplit": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "transactionId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "categoryId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "category": {
+            "$ref": "#/components/schemas/TransactionCategory"
+          },
+          "transaction": {
+            "$ref": "#/components/schemas/Transaction"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TransactionType": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            },
+            "nullable": true
+          },
+          "recurringTransactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecurringTransaction"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}
