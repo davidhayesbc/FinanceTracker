@@ -162,6 +162,7 @@ void MapAccountEndpoints(RouteGroupBuilder group)
                 Name = a.Name,
                 OpeningBalance = a.OpeningBalance,
                 AccountTypeName = a.AccountType != null ? a.AccountType.Type : string.Empty,
+                CurrencySymbol = a.Currency != null ? a.Currency.Symbol : string.Empty,
                 CurrencyDisplaySymbol = a.Currency != null ? a.Currency.DisplaySymbol : string.Empty,
                 OpenedDate = a.OpenDate
             })
