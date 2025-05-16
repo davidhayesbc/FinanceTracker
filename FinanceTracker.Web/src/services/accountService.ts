@@ -1,20 +1,15 @@
-import { accountSummary, recentTransactions, spendingByCategory } from '../mocks/accountData';
-import { netWorthHistory } from '../mocks/netWorthData';
-import type {
-  AccountSummary,
-  Transaction,
-  CategorySpending,
-  NetWorthHistory,
-} from '../models/financeModels';
+import type { Account, Transaction } from '../models/financeModels'; // Assuming financeModels.ts will be updated or created based on API spec
 
-// Simulate network delay for more realistic testing
-const simulateNetworkDelay = (ms = 800) => new Promise(resolve => setTimeout(resolve, ms));
+const API_BASE_URL = import.meta.env.VITE_API_SERVICE_URL + '/api/v1'; // Adjust if your API base URL is different
 
 // Error handling helper
-const handleApiRequest = async <T>(dataProvider: () => T): Promise<T> => {
+const handleApiRequest = async <T>(url: string): Promise<T> => {
   try {
-    await simulateNetworkDelay();
-    return dataProvider();
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+    return await response.json();
   } catch (error) {
     console.error('API request failed:', error);
     throw new Error('Failed to fetch data from server');
@@ -22,19 +17,25 @@ const handleApiRequest = async <T>(dataProvider: () => T): Promise<T> => {
 };
 
 export const AccountService = {
-  async getAccountSummary(): Promise<AccountSummary> {
-    return handleApiRequest(() => accountSummary);
+  async getAllAccounts(): Promise<Account[]> {
+    return handleApiRequest<Account[]>(`${API_BASE_URL}/accounts`);
   },
 
-  async getRecentTransactions(): Promise<Transaction[]> {
-    return handleApiRequest(() => recentTransactions);
+  async getAccountById(id: number): Promise<Account> {
+    return handleApiRequest<Account>(`${API_BASE_URL}/accounts/${id}`);
   },
 
-  async getSpendingByCategory(): Promise<CategorySpending[]> {
-    return handleApiRequest(() => spendingByCategory);
+  async getAccountTransactions(id: number): Promise<Transaction[]> {
+    return handleApiRequest<Transaction[]>(`${API_BASE_URL}/accounts/${id}/transactions`);
   },
 
-  async getNetWorthHistory(): Promise<NetWorthHistory> {
-    return handleApiRequest(() => netWorthHistory);
+  async getAccountRecurringTransactions(id: number): Promise<Transaction[]> { // Assuming RecurringTransaction is similar to Transaction for now
+    return handleApiRequest<Transaction[]>(`${API_BASE_URL}/accounts/${id}/recurringTransactions`);
   },
+
+  // Add other account related methods here based on api.json if needed
+  // For example, methods for AccountTypes if they are directly related to AccountService
+  // async getAllAccountTypes(): Promise<AccountType[]> {
+  //   return handleApiRequest<AccountType[]>(`${API_BASE_URL}/accountTypes`);
+  // }
 };

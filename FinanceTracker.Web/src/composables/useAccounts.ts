@@ -1,52 +1,19 @@
 import { ref, onMounted } from 'vue';
 import { AccountService } from '../services/accountService';
-
-interface AccountSummary {
-  totalBalance: number;
-  accounts: { id: number; name: string; balance: number; type: string }[];
-}
-
-interface Transaction {
-  id: number;
-  date: string;
-  description: string;
-  amount: number;
-  category: string;
-}
-
-interface CategorySpending {
-  category: string;
-  amount: number;
-}
-
-interface NetWorthHistory {
-  labels: string[];
-  values: number[];
-}
+import type { Account } from '../models/financeModels'; // Using the new models
 
 export function useAccounts() {
-  const accountSummary = ref<AccountSummary | null>(null);
-  const recentTransactions = ref<Transaction[]>([]);
-  const spendingByCategory = ref<CategorySpending[]>([]);
-  const netWorthHistory = ref<NetWorthHistory | null>(null);
+  const accounts = ref<Account[]>([]); // Changed from accountSummary to a list of Accounts
   const loading = ref(false);
   const error = ref<Error | null>(null);
 
-  async function fetchAccounts() {
+  async function fetchAccountsData() { // Renamed function for clarity
     loading.value = true;
     try {
-      // Add Promise.all to fetch data in parallel for better performance
-      const [accounts, transactions, spending, netWorth] = await Promise.all([
-        AccountService.getAccountSummary(),
-        AccountService.getRecentTransactions(),
-        AccountService.getSpendingByCategory(),
-        AccountService.getNetWorthHistory(),
-      ]);
+      // Fetch all accounts
+      const allAccounts = await AccountService.getAllAccounts();
+      accounts.value = allAccounts;
 
-      accountSummary.value = accounts;
-      recentTransactions.value = transactions;
-      spendingByCategory.value = spending;
-      netWorthHistory.value = netWorth;
     } catch (err) {
       error.value = err instanceof Error ? err : new Error(String(err));
     } finally {
@@ -54,15 +21,12 @@ export function useAccounts() {
     }
   }
 
-  onMounted(fetchAccounts);
+  onMounted(fetchAccountsData);
 
   return {
-    accountSummary,
-    recentTransactions,
-    spendingByCategory,
-    netWorthHistory,
+    accounts, // Changed from accountSummary
     loading,
     error,
-    fetchAccounts,
+    fetchAccountsData, // Renamed function
   };
 }
