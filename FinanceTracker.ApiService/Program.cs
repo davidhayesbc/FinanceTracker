@@ -1,4 +1,5 @@
 using FinanceTracker.Data.Models;
+using FinanceTracker.ApiService.Dtos; // DTO नेमस्पेस जोड़ें
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.ComponentModel.DataAnnotations;
@@ -152,12 +153,24 @@ void MapAccountEndpoints(RouteGroupBuilder group)
 
     accountEndpoints.MapGet("/", async (FinanceTackerDbContext context) =>
     {
-        var accounts = await context.Accounts.ToListAsync();
+        var accounts = await context.Accounts
+            .Include(a => a.AccountType)
+            .Include(a => a.Currency)
+            .Select(a => new AccountDto
+            {
+                Id = a.Id,
+                Name = a.Name,
+                OpeningBalance = a.OpeningBalance,
+                AccountTypeName = a.AccountType != null ? a.AccountType.Type : string.Empty,
+                CurrencyDisplaySymbol = a.Currency != null ? a.Currency.DisplaySymbol : string.Empty,
+                OpenedDate = a.OpenDate
+            })
+            .ToListAsync();
         return Results.Ok(accounts);
     })
     .WithName("GetAllAccounts")
-    .WithDescription("Gets all accounts")
-    .Produces<List<Account>>(StatusCodes.Status200OK);
+    .WithDescription("Gets all accounts with flattened related data")
+    .Produces<List<AccountDto>>(StatusCodes.Status200OK);
 
     accountEndpoints.MapGet("/{id}", async (FinanceTackerDbContext context, int id) =>
     {

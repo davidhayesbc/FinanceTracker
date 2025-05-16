@@ -4,16 +4,12 @@
 
 export interface Account {
   id: number;
-  name: string | null;
-  openingBalance: number; // double
-  openDate: string; // date
-  accountTypeId: number;
-  currencyId: number;
-  accountType?: AccountType;
-  currency?: Currency;
-  transactions?: Transaction[] | null;
-  recurringTransactions?: RecurringTransaction[] | null;
-  accountPeriods?: AccountPeriod[] | null;
+  name: string;
+  openingBalance: number; // Was openingBalance, now represents the DTO's Balance
+  accountTypeName: string;
+  currencySymbol: string;
+  currencyDisplaySymbol: string;
+  openedDate: string; // Was openDate, maps to DTO's OpenedDate (DateOnly as string)
 }
 
 export interface AccountType {

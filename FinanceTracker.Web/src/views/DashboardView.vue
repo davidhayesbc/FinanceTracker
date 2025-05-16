@@ -13,7 +13,7 @@
       <h2>Accounts Summary</h2>
       <ul>
         <li v-for="account in accountStore.accounts" :key="account.id">
-          {{ account.name }} - Balance: {{ account.openingBalance }} {{ account.currency?.symbol }}
+          {{ account.name }} - Balance: {{ account.openingBalance }} {{ account.currencySymbol }}
         </li>
       </ul>
     </div>
