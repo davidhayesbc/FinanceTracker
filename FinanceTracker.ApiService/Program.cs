@@ -5,10 +5,45 @@ using System.ComponentModel.DataAnnotations;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Define a CORS policy name
+const string WebAppCorsPolicy = "WebAppCorsPolicy";
+
 // Add service defaults & Aspire components.
 builder.AddServiceDefaults();
-// Add services to the container.
-builder.Services.AddProblemDetails();
+
+// Add CORS services
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: WebAppCorsPolicy,
+                      policyBuilder =>
+                      {
+                          // In development, allow the Vite dev server's origin.
+                          // For production, you'll want to configure this more restrictively
+                          // based on your frontend's actual deployed URL.
+                          var frontendUrl = builder.Configuration["services:web:https:0:url"] ?? builder.Configuration["services:web:http:0:url"];
+                          if (string.IsNullOrEmpty(frontendUrl) && builder.Environment.IsDevelopment())
+                          {
+                              frontendUrl = "http://localhost:5174"; // Default Vite port
+                          }
+
+                          if (!string.IsNullOrEmpty(frontendUrl))
+                          {
+                              policyBuilder.WithOrigins(frontendUrl)
+                                  .AllowAnyHeader()
+                                  .AllowAnyMethod();
+                          }
+                          else if (builder.Environment.IsDevelopment())
+                          {
+                              // Fallback for local dev if Aspire service discovery isn't providing the URL
+                              // or if running ApiService standalone.
+                              policyBuilder.WithOrigins("http://localhost:5174")
+                                   .AllowAnyHeader()
+                                   .AllowAnyMethod();
+                          }
+                          // else in production, you might want to throw an error if the URL isn't configured
+                          // or have a more secure default.
+                      });
+});
 
 builder.AddSqlServerDbContext<FinanceTackerDbContext>("FinanceTracker");
 
@@ -38,8 +73,12 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+
+// Use CORS middleware - place it early in the pipeline
+app.UseCors(WebAppCorsPolicy);
+
 app.UseHttpsRedirection();
-app.UseExceptionHandler();
+app.UseExceptionHandler("/error"); // Redirects to an error-handling endpoint
 
 // Enable Swagger and Swagger UI
 if (app.Environment.IsDevelopment())
@@ -64,7 +103,7 @@ MapTransactionEndpoints(apiV1);
 MapTransactionSplitEndpoints(apiV1);
 MapTransactionCategoryEndPoints(apiV1);
 MapTransactionTypeEndPoints(apiV1);
- 
+
 app.MapDefaultEndpoints();
 
 app.Run();
