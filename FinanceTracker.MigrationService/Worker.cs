@@ -66,6 +66,43 @@ public class Worker(
         await SeedTransactionTypesAsync(dbContext, cancellationToken);
         await SeedCurrenciesAsync(dbContext, cancellationToken);
         await SeedSecuritiesAsync(dbContext, cancellationToken);
+        await SeedCategoriesAsync(dbContext, cancellationToken);
+    }
+
+    private static async Task SeedCategoriesAsync(FinanceTackerDbContext dbContext, CancellationToken cancellationToken)
+    {
+        var strategy = dbContext.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+            try
+            {
+                if (!await dbContext.TransactionCategories.AnyAsync(c => c.Category == "Groceries", cancellationToken))
+                    await dbContext.TransactionCategories.AddAsync(new TransactionCategory { Category = "Groceries", Description = "Expenses related to grocery shopping" }, cancellationToken);
+
+                if (!await dbContext.TransactionCategories.AnyAsync(c => c.Category == "Restaurants", cancellationToken))
+                    await dbContext.TransactionCategories.AddAsync(new TransactionCategory { Category = "Restaurants", Description = "Expenses related to dining out" }, cancellationToken);
+
+                if (!await dbContext.TransactionCategories.AnyAsync(c => c.Category == "Entertainment", cancellationToken))
+                    await dbContext.TransactionCategories.AddAsync(new TransactionCategory { Category = "Entertainment", Description = "Expenses related to entertainment" }, cancellationToken);
+
+                if (!await dbContext.TransactionCategories.AnyAsync(c => c.Category == "Utilities", cancellationToken))
+                    await dbContext.TransactionCategories.AddAsync(new TransactionCategory { Category = "Utilities", Description = "Expenses related to utilities" }, cancellationToken);
+
+                if (!await dbContext.TransactionCategories.AnyAsync(c => c.Category == "Health", cancellationToken))
+                    await dbContext.TransactionCategories.AddAsync(new TransactionCategory { Category = "Health", Description = "Expenses related to health" }, cancellationToken);
+
+                await dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                Console.WriteLine("SeedCategoriesAsync: Categories seeded successfully.");
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                Console.WriteLine($"SeedCategoriesAsync: Error seeding categories: {ex}");
+                throw;
+            }
+        });
     }
 
     private static async Task SeedAccountTypesAsync(FinanceTackerDbContext dbContext, CancellationToken cancellationToken)
@@ -118,11 +155,23 @@ public class Worker(
             await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
             try
             {
-                if (!await dbContext.TransactionTypes.AnyAsync(tt => tt.Type == "Change", cancellationToken))
-                    await dbContext.TransactionTypes.AddAsync(new TransactionType { Type = "Change" }, cancellationToken);
+                if (!await dbContext.TransactionTypes.AnyAsync(tt => tt.Type == "Buy", cancellationToken))
+                    await dbContext.TransactionTypes.AddAsync(new TransactionType { Type = "Buy" }, cancellationToken);
 
-                if (!await dbContext.TransactionTypes.AnyAsync(tt => tt.Type == "BalanceUpdate", cancellationToken))
-                    await dbContext.TransactionTypes.AddAsync(new TransactionType { Type = "BalanceUpdate" }, cancellationToken);
+                if (!await dbContext.TransactionTypes.AnyAsync(tt => tt.Type == "Sell", cancellationToken))
+                    await dbContext.TransactionTypes.AddAsync(new TransactionType { Type = "Sell" }, cancellationToken);
+
+                if (!await dbContext.TransactionTypes.AnyAsync(tt => tt.Type == "Short", cancellationToken))
+                    await dbContext.TransactionTypes.AddAsync(new TransactionType { Type = "Short" }, cancellationToken);
+
+                if (!await dbContext.TransactionTypes.AnyAsync(tt => tt.Type == "Cover", cancellationToken))
+                    await dbContext.TransactionTypes.AddAsync(new TransactionType { Type = "Cover" }, cancellationToken);
+
+                if (!await dbContext.TransactionTypes.AnyAsync(tt => tt.Type == "Deposit", cancellationToken))
+                    await dbContext.TransactionTypes.AddAsync(new TransactionType { Type = "Deposit" }, cancellationToken);
+
+                if (!await dbContext.TransactionTypes.AnyAsync(tt => tt.Type == "Withdrawal", cancellationToken))
+                    await dbContext.TransactionTypes.AddAsync(new TransactionType { Type = "Withdrawal" }, cancellationToken);
 
                 await dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
