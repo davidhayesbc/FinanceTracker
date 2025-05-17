@@ -161,11 +161,11 @@ void MapAccountEndpoints(RouteGroupBuilder group)
                 Id = a.Id,
                 Name = a.Name,
                 Institution = a.Institution, // Include Institution
-                OpeningBalance = a.OpeningBalance,
+                OpeningBalance = 0,
                 AccountTypeName = a.AccountType != null ? a.AccountType.Type : string.Empty,
                 CurrencySymbol = a.Currency != null ? a.Currency.Symbol : string.Empty,
                 CurrencyDisplaySymbol = a.Currency != null ? a.Currency.DisplaySymbol : string.Empty,
-                OpenedDate = a.OpenDate
+                OpenedDate = DateOnly.FromDateTime(DateTime.Now) // Use current date for OpenedDate
             })
             .ToListAsync();
         return Results.Ok(accounts);
@@ -185,11 +185,11 @@ void MapAccountEndpoints(RouteGroupBuilder group)
                 Id = a.Id,
                 Name = a.Name,
                 Institution = a.Institution, // Include Institution
-                OpeningBalance = a.OpeningBalance,
+                OpeningBalance = 0,
                 AccountTypeName = a.AccountType != null ? a.AccountType.Type : string.Empty,
                 CurrencySymbol = a.Currency != null ? a.Currency.Symbol : string.Empty,
                 CurrencyDisplaySymbol = a.Currency != null ? a.Currency.DisplaySymbol : string.Empty,
-                OpenedDate = a.OpenDate
+                OpenedDate = DateOnly.FromDateTime(DateTime.Now) // Use current date for OpenedDate
             })
             .FirstOrDefaultAsync();
 

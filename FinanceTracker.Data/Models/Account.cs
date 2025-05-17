@@ -9,11 +9,6 @@ public partial class Account
 
     public string Name { get; set; } = null!;
 
-    [Precision(18, 2)]
-    public decimal OpeningBalance { get; set; }
-
-    public DateOnly OpenDate { get; set; }
-
     public int AccountTypeId { get; set; }
 
     public int CurrencyId { get; set; }

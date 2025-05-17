@@ -10,13 +10,13 @@ public partial class AccountPeriod
     [Precision(18, 2)]
     public decimal OpeningBalance { get; set; }
     [Precision(18, 2)]
-    public decimal ClosingBalance { get; set; }
+    public decimal? ClosingBalance { get; set; } = null;
 
-    public DateOnly PeriodStart{ get; set; }
-    public DateOnly PeriodEnd { get; set; }
-    public DateOnly PeriodCloseDate { get; set; }
+    public DateOnly PeriodStart { get; set; }
+    public DateOnly? PeriodEnd { get; set; } = null;
+    public DateOnly? PeriodCloseDate { get; set; } = null;
 
-    public virtual Account Account { get; set; } = null!;
+    public virtual required Account Account { get; set; }
 
     //TODO: Figure out how to do a Mapping table in EF Core (for transactions)
 }

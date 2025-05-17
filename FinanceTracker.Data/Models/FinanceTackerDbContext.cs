@@ -45,7 +45,6 @@ public partial class FinanceTackerDbContext : DbContext
             entity.ToTable("Account");
 
             entity.Property(e => e.Name).HasMaxLength(50);
-            entity.Property(e => e.OpeningBalance).HasColumnType("decimal(18, 2)");
 
             entity.HasOne(d => d.AccountType).WithMany(p => p.Accounts)
                 .HasForeignKey(d => d.AccountTypeId)

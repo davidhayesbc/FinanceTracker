@@ -46,13 +46,6 @@ namespace FinanceTracker.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<DateOnly>("OpenDate")
-                        .HasColumnType("date");
-
-                    b.Property<decimal>("OpeningBalance")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18, 2)");
-
                     b.HasKey("Id")
                         .HasName("PK_Account");
 
@@ -74,7 +67,7 @@ namespace FinanceTracker.Data.Migrations
                     b.Property<int>("AccountId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("ClosingBalance")
+                    b.Property<decimal?>("ClosingBalance")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18, 2)");
 
@@ -82,10 +75,10 @@ namespace FinanceTracker.Data.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18, 2)");
 
-                    b.Property<DateOnly>("PeriodCloseDate")
+                    b.Property<DateOnly?>("PeriodCloseDate")
                         .HasColumnType("date");
 
-                    b.Property<DateOnly>("PeriodEnd")
+                    b.Property<DateOnly?>("PeriodEnd")
                         .HasColumnType("date");
 
                     b.Property<DateOnly>("PeriodStart")
