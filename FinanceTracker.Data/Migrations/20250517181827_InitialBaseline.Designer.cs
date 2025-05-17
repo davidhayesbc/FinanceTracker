@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FinanceTracker.Data.Migrations
 {
     [DbContext(typeof(FinanceTackerDbContext))]
-    [Migration("20250517004819_InitialBaseline")]
+    [Migration("20250517181827_InitialBaseline")]
     partial class InitialBaseline
     {
         /// <inheritdoc />
@@ -315,7 +315,10 @@ namespace FinanceTracker.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AccountId")
+                    b.Property<int?>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AccountPeriodId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("Amount")
@@ -339,6 +342,8 @@ namespace FinanceTracker.Data.Migrations
                         .HasName("PK_Transaction");
 
                     b.HasIndex("AccountId");
+
+                    b.HasIndex("AccountPeriodId");
 
                     b.HasIndex("CategoryId");
 
@@ -530,9 +535,13 @@ namespace FinanceTracker.Data.Migrations
 
             modelBuilder.Entity("FinanceTracker.Data.Models.Transaction", b =>
                 {
-                    b.HasOne("FinanceTracker.Data.Models.Account", "Account")
+                    b.HasOne("FinanceTracker.Data.Models.Account", null)
                         .WithMany("Transactions")
-                        .HasForeignKey("AccountId")
+                        .HasForeignKey("AccountId");
+
+                    b.HasOne("FinanceTracker.Data.Models.AccountPeriod", "AccountPeriod")
+                        .WithMany("Transactions")
+                        .HasForeignKey("AccountPeriodId")
                         .IsRequired()
                         .HasConstraintName("FK_Transaction_ToAccount");
 
@@ -548,7 +557,7 @@ namespace FinanceTracker.Data.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_Transaction_ToTransactionType");
 
-                    b.Navigation("Account");
+                    b.Navigation("AccountPeriod");
 
                     b.Navigation("Category");
 
@@ -580,6 +589,11 @@ namespace FinanceTracker.Data.Migrations
 
                     b.Navigation("RecurringTransactions");
 
+                    b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("FinanceTracker.Data.Models.AccountPeriod", b =>
+                {
                     b.Navigation("Transactions");
                 });
 

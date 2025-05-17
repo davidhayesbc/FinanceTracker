@@ -18,5 +18,7 @@ public partial class AccountPeriod
 
     public virtual required Account Account { get; set; }
 
+    public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>(); // Added
+
     //TODO: Figure out how to do a Mapping table in EF Core (for transactions)
 }

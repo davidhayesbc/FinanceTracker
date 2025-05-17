@@ -204,7 +204,9 @@ void MapAccountEndpoints(RouteGroupBuilder group)
         if (!accountExists)
             return Results.NotFound($"Account with ID {id} not found");
 
-        var transactions = await context.Transactions.Where(t => t.AccountId == id).ToListAsync();
+        var transactions = await context.Transactions
+            .Where(t => t.AccountPeriod.AccountId == id) // Corrected: Access AccountId via AccountPeriod
+            .ToListAsync();
         return Results.Ok(transactions);
     })
     .WithName("GetAccountTransactions")
@@ -338,10 +340,11 @@ void MapTransactionEndpoints(RouteGroupBuilder group)
             return Results.BadRequest(validationResults);
         }
 
-        // Validate that the account exists
-        if (!await context.Accounts.AnyAsync(a => a.Id == transaction.AccountId))
+        // Validate that the account exists by checking AccountPeriod's AccountId
+        var accountPeriod = await context.AccountPeriods.FindAsync(transaction.AccountPeriodId);
+        if (accountPeriod == null || !await context.Accounts.AnyAsync(a => a.Id == accountPeriod.AccountId))
         {
-            return Results.BadRequest($"Account with ID {transaction.AccountId} does not exist");
+            return Results.BadRequest($"Account with ID {accountPeriod?.AccountId} associated with AccountPeriodId {transaction.AccountPeriodId} does not exist or AccountPeriodId is invalid.");
         }
 
         context.Transactions.Add(transaction);

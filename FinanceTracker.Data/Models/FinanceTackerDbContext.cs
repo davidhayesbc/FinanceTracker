@@ -92,8 +92,8 @@ public partial class FinanceTackerDbContext : DbContext
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Description).HasMaxLength(100);
 
-            entity.HasOne(d => d.Account).WithMany(p => p.Transactions)
-                .HasForeignKey(d => d.AccountId)
+            entity.HasOne(d => d.AccountPeriod).WithMany(p => p.Transactions)
+                .HasForeignKey(d => d.AccountPeriodId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Transaction_ToAccount");
 

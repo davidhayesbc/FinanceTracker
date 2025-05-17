@@ -10,18 +10,17 @@ public partial class Transaction
 
     public string Description { get; set; } = null!;
 
-    public int AccountId { get; set; }
-
     public int TransactionTypeId { get; set; }
 
     public int CategoryId { get; set; }
 
-    public virtual Account Account { get; set; } = null!;
+    public int AccountPeriodId { get; set; }
+
+    public virtual AccountPeriod AccountPeriod { get; set; } = null!;
 
     public virtual TransactionCategory Category { get; set; } = null!;
 
     public virtual ICollection<TransactionSplit> TransactionSplits { get; set; } = new List<TransactionSplit>();
 
     public virtual TransactionType TransactionType { get; set; } = null!;
-
 }
