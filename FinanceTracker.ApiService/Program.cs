@@ -153,24 +153,37 @@ void MapAccountEndpoints(RouteGroupBuilder group)
 
     accountEndpoints.MapGet("/", async (FinanceTackerDbContext context) =>
     {
-        var accounts = await context.Accounts
+        var accountsWithDetails = await context.Accounts
             .Include(a => a.AccountType)
             .Include(a => a.Currency)
-            .Select(a => new AccountDto
+            .Include(a => a.AccountPeriods)
+                .ThenInclude(ap => ap.Transactions)
+            .ToListAsync();
+
+        var accountDtos = accountsWithDetails.Select(a =>
+        {
+            var currentPeriod = a.AccountPeriods.FirstOrDefault(ap => ap.PeriodCloseDate == null);
+            decimal currentBalance = 0m;
+            if (currentPeriod != null)
+            {
+                currentBalance = currentPeriod.OpeningBalance + currentPeriod.Transactions.Sum(t => t.Amount);
+            }
+            return new AccountDto
             {
                 Id = a.Id,
                 Name = a.Name,
-                Institution = a.Institution, // Include Institution
-                CurrentBalance = 0,
-                AccountTypeName = a.AccountType != null ? a.AccountType.Type : string.Empty,
-                CurrencySymbol = a.Currency != null ? a.Currency.Symbol : string.Empty,
-                CurrencyDisplaySymbol = a.Currency != null ? a.Currency.DisplaySymbol : string.Empty,
-            })
-            .ToListAsync();
-        return Results.Ok(accounts);
+                Institution = a.Institution,
+                AccountTypeName = a.AccountType?.Type ?? string.Empty,
+                CurrencySymbol = a.Currency?.Symbol ?? string.Empty,
+                CurrencyDisplaySymbol = a.Currency?.DisplaySymbol ?? string.Empty,
+                CurrentBalance = currentBalance
+            };
+        }).ToList();
+
+        return Results.Ok(accountDtos);
     })
     .WithName("GetAllAccounts")
-    .WithDescription("Gets all accounts with flattened related data")
+    .WithDescription("Gets all accounts with flattened related data, including calculated current balance from the open account period.")
     .Produces<List<AccountDto>>(StatusCodes.Status200OK);
 
     accountEndpoints.MapGet("/{id}", async (FinanceTackerDbContext context, int id) =>
@@ -178,23 +191,38 @@ void MapAccountEndpoints(RouteGroupBuilder group)
         var account = await context.Accounts
             .Include(a => a.AccountType)
             .Include(a => a.Currency)
+            .Include(a => a.AccountPeriods)
+                .ThenInclude(ap => ap.Transactions)
             .Where(a => a.Id == id)
-            .Select(a => new AccountDto
-            {
-                Id = a.Id,
-                Name = a.Name,
-                Institution = a.Institution, // Include Institution
-                CurrentBalance = 0,
-                AccountTypeName = a.AccountType != null ? a.AccountType.Type : string.Empty,
-                CurrencySymbol = a.Currency != null ? a.Currency.Symbol : string.Empty,
-                CurrencyDisplaySymbol = a.Currency != null ? a.Currency.DisplaySymbol : string.Empty,
-            })
             .FirstOrDefaultAsync();
 
-        return account is not null ? Results.Ok(account) : Results.NotFound($"Account with ID {id} not found.");
+        if (account == null)
+        {
+            return Results.NotFound($"Account with ID {id} not found.");
+        }
+
+        var currentPeriod = account.AccountPeriods.FirstOrDefault(ap => ap.PeriodCloseDate == null);
+        decimal currentBalance = 0m;
+        if (currentPeriod != null)
+        {
+            currentBalance = currentPeriod.OpeningBalance + currentPeriod.Transactions.Sum(t => t.Amount);
+        }
+
+        var accountDto = new AccountDto
+        {
+            Id = account.Id,
+            Name = account.Name,
+            Institution = account.Institution,
+            AccountTypeName = account.AccountType?.Type ?? string.Empty,
+            CurrencySymbol = account.Currency?.Symbol ?? string.Empty,
+            CurrencyDisplaySymbol = account.Currency?.DisplaySymbol ?? string.Empty,
+            CurrentBalance = currentBalance
+        };
+
+        return Results.Ok(accountDto);
     })
     .WithName("GetAccountById")
-    .WithDescription("Gets an account by its ID")
+    .WithDescription("Gets an account by its ID, including calculated current balance from the open account period.")
     .Produces<AccountDto>(StatusCodes.Status200OK)
     .ProducesProblem(StatusCodes.Status404NotFound);
 
@@ -202,15 +230,25 @@ void MapAccountEndpoints(RouteGroupBuilder group)
     {
         var accountExists = await context.Accounts.AnyAsync(a => a.Id == id);
         if (!accountExists)
+        {
             return Results.NotFound($"Account with ID {id} not found");
+        }
 
-        var transactions = await context.Transactions
-            .Where(t => t.AccountPeriod.AccountId == id) // Corrected: Access AccountId via AccountPeriod
-            .ToListAsync();
-        return Results.Ok(transactions);
+        var currentPeriodWithTransactions = await context.AccountPeriods
+            .Include(ap => ap.Transactions)
+            .Where(ap => ap.AccountId == id && ap.PeriodCloseDate == null)
+            .FirstOrDefaultAsync();
+
+        if (currentPeriodWithTransactions == null)
+        {
+            // Account exists, but no current open period found
+            return Results.Ok(new List<Transaction>());
+        }
+
+        return Results.Ok(currentPeriodWithTransactions.Transactions.ToList());
     })
     .WithName("GetAccountTransactions")
-    .WithDescription("Gets all transactions for a specific account")
+    .WithDescription("Gets all transactions for the current open account period of a specific account.")
     .Produces<List<Transaction>>(StatusCodes.Status200OK)
     .ProducesProblem(StatusCodes.Status404NotFound);
 
