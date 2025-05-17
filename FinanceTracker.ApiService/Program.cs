@@ -160,6 +160,7 @@ void MapAccountEndpoints(RouteGroupBuilder group)
             {
                 Id = a.Id,
                 Name = a.Name,
+                Institution = a.Institution, // Include Institution
                 OpeningBalance = a.OpeningBalance,
                 AccountTypeName = a.AccountType != null ? a.AccountType.Type : string.Empty,
                 CurrencySymbol = a.Currency != null ? a.Currency.Symbol : string.Empty,
@@ -175,14 +176,28 @@ void MapAccountEndpoints(RouteGroupBuilder group)
 
     accountEndpoints.MapGet("/{id}", async (FinanceTackerDbContext context, int id) =>
     {
-        var account = await context.Accounts.FindAsync(id);
-        return account is not null ?
-            Results.Ok(account) :
-            Results.NotFound($"Account with ID {id} not found");
+        var account = await context.Accounts
+            .Include(a => a.AccountType)
+            .Include(a => a.Currency)
+            .Where(a => a.Id == id)
+            .Select(a => new AccountDto
+            {
+                Id = a.Id,
+                Name = a.Name,
+                Institution = a.Institution, // Include Institution
+                OpeningBalance = a.OpeningBalance,
+                AccountTypeName = a.AccountType != null ? a.AccountType.Type : string.Empty,
+                CurrencySymbol = a.Currency != null ? a.Currency.Symbol : string.Empty,
+                CurrencyDisplaySymbol = a.Currency != null ? a.Currency.DisplaySymbol : string.Empty,
+                OpenedDate = a.OpenDate
+            })
+            .FirstOrDefaultAsync();
+
+        return account is not null ? Results.Ok(account) : Results.NotFound($"Account with ID {id} not found.");
     })
     .WithName("GetAccountById")
     .WithDescription("Gets an account by its ID")
-    .Produces<Account>(StatusCodes.Status200OK)
+    .Produces<AccountDto>(StatusCodes.Status200OK)
     .ProducesProblem(StatusCodes.Status404NotFound);
 
     accountEndpoints.MapGet("/{id}/transactions", async (FinanceTackerDbContext context, int id) =>

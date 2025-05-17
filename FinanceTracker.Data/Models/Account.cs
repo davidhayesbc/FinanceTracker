@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace FinanceTracker.Data.Models;
 
@@ -16,6 +17,9 @@ public partial class Account
     public int AccountTypeId { get; set; }
 
     public int CurrencyId { get; set; }
+
+    [MaxLength(100)]
+    public string Institution { get; set; } = null!;
 
     public virtual AccountType AccountType { get; set; } = null!;
 

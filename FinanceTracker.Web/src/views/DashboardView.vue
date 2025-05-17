@@ -10,6 +10,7 @@
     <div v-if="!accountStore.isLoading && !accountStore.error && accountStore.accounts.length > 0">
       <h2>Accounts Summary</h2>
       <DataTable :value="accountStore.accounts" sortMode="multiple" paginator :rows="10" stripedRows>
+        <Column field="institution" header="Bank" sortable></Column>
         <Column field="name" header="Name" sortable></Column>
         <Column field="accountTypeName" header="Type" sortable></Column>
         <Column field="openingBalance" header="Balance" sortable>
@@ -140,4 +141,5 @@ li {
 :deep(.p-datatable .p-datatable-tbody > tr:nth-child(even)) {
   background-color: #f9f9f9;
 }
+
 </style>

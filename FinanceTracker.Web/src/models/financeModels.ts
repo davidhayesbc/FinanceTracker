@@ -10,6 +10,7 @@ export interface Account {
   currencySymbol: string;
   currencyDisplaySymbol: string; // Ensure this line is present
   openedDate: string; // Was openDate, maps to DTO's OpenedDate (DateOnly as string)
+  institution: string;
 }
 
 export interface AccountType {
