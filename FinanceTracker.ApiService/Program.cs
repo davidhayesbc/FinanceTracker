@@ -153,32 +153,23 @@ void MapAccountEndpoints(RouteGroupBuilder group)
 
     accountEndpoints.MapGet("/", async (FinanceTackerDbContext context) =>
     {
-        var accountsWithDetails = await context.Accounts
-            .Include(a => a.AccountType)
-            .Include(a => a.Currency)
-            .Include(a => a.AccountPeriods)
-                .ThenInclude(ap => ap.Transactions)
-            .ToListAsync();
-
-        var accountDtos = accountsWithDetails.Select(a =>
-        {
-            var currentPeriod = a.AccountPeriods.FirstOrDefault(ap => ap.PeriodCloseDate == null);
-            decimal currentBalance = 0m;
-            if (currentPeriod != null)
-            {
-                currentBalance = currentPeriod.OpeningBalance + currentPeriod.Transactions.Sum(t => t.Amount);
-            }
-            return new AccountDto
+        var accountDtos = await context.Accounts
+            .Include(a => a.AccountType) // Included for AccountTypeName
+            .Include(a => a.Currency)   // Included for CurrencySymbol and CurrencyDisplaySymbol
+            .Select(a => new AccountDto
             {
                 Id = a.Id,
                 Name = a.Name,
                 Institution = a.Institution,
-                AccountTypeName = a.AccountType?.Type ?? string.Empty,
-                CurrencySymbol = a.Currency?.Symbol ?? string.Empty,
-                CurrencyDisplaySymbol = a.Currency?.DisplaySymbol ?? string.Empty,
-                CurrentBalance = currentBalance
-            };
-        }).ToList();
+                AccountTypeName = a.AccountType != null ? a.AccountType.Type : string.Empty,
+                CurrencySymbol = a.Currency != null ? a.Currency.Symbol : string.Empty,
+                CurrencyDisplaySymbol = a.Currency != null ? a.Currency.DisplaySymbol : string.Empty,
+                CurrentBalance = a.AccountPeriods
+                                    .Where(ap => ap.PeriodCloseDate == null)
+                                    .Select(ap => ap.OpeningBalance + ap.Transactions.Sum(t => t.Amount))
+                                    .FirstOrDefault() // EF Core translates this to a subquery or join
+            })
+            .ToListAsync();
 
         return Results.Ok(accountDtos);
     })
@@ -188,36 +179,29 @@ void MapAccountEndpoints(RouteGroupBuilder group)
 
     accountEndpoints.MapGet("/{id}", async (FinanceTackerDbContext context, int id) =>
     {
-        var account = await context.Accounts
-            .Include(a => a.AccountType)
-            .Include(a => a.Currency)
-            .Include(a => a.AccountPeriods)
-                .ThenInclude(ap => ap.Transactions)
+        var accountDto = await context.Accounts
             .Where(a => a.Id == id)
+            .Include(a => a.AccountType) // Included for AccountTypeName
+            .Include(a => a.Currency)   // Included for CurrencySymbol and CurrencyDisplaySymbol
+            .Select(a => new AccountDto
+            {
+                Id = a.Id,
+                Name = a.Name,
+                Institution = a.Institution,
+                AccountTypeName = a.AccountType != null ? a.AccountType.Type : string.Empty,
+                CurrencySymbol = a.Currency != null ? a.Currency.Symbol : string.Empty,
+                CurrencyDisplaySymbol = a.Currency != null ? a.Currency.DisplaySymbol : string.Empty,
+                CurrentBalance = a.AccountPeriods
+                                    .Where(ap => ap.PeriodCloseDate == null)
+                                    .Select(ap => ap.OpeningBalance + ap.Transactions.Sum(t => t.Amount))
+                                    .FirstOrDefault() // EF Core translates this to a subquery or join
+            })
             .FirstOrDefaultAsync();
 
-        if (account == null)
+        if (accountDto == null)
         {
             return Results.NotFound($"Account with ID {id} not found.");
         }
-
-        var currentPeriod = account.AccountPeriods.FirstOrDefault(ap => ap.PeriodCloseDate == null);
-        decimal currentBalance = 0m;
-        if (currentPeriod != null)
-        {
-            currentBalance = currentPeriod.OpeningBalance + currentPeriod.Transactions.Sum(t => t.Amount);
-        }
-
-        var accountDto = new AccountDto
-        {
-            Id = account.Id,
-            Name = account.Name,
-            Institution = account.Institution,
-            AccountTypeName = account.AccountType?.Type ?? string.Empty,
-            CurrencySymbol = account.Currency?.Symbol ?? string.Empty,
-            CurrencyDisplaySymbol = account.Currency?.DisplaySymbol ?? string.Empty,
-            CurrentBalance = currentBalance
-        };
 
         return Results.Ok(accountDto);
     })
