@@ -13,19 +13,14 @@
         <Column field="institution" header="Bank" sortable></Column>
         <Column field="name" header="Name" sortable></Column>
         <Column field="accountTypeName" header="Type" sortable></Column>
-        <Column field="openingBalance" header="Balance" sortable :pt="{ 'bodyCell': { style: 'text-align: right;' } }">
+        <Column field="currentBalance" header="Balance" sortable :pt="{ 'bodyCell': { style: 'text-align: right;' } }">
           <template #body="slotProps">
-            <span :style="{ color: slotProps.data.openingBalance < 0 ? '#ff8c8c' : '#90ee90' }"> <!-- Updated red/green colors -->
-              {{ formatCurrency(slotProps.data.openingBalance, slotProps.data.currencyDisplaySymbol) }}
+            <span :style="{ color: slotProps.data.currentBalance < 0 ? '#ff8c8c' : '#90ee90' }">
+              {{ formatCurrency(slotProps.data.currentBalance, slotProps.data.currencyDisplaySymbol) }}
             </span>
           </template>
         </Column>
         <Column field="currencySymbol" header="Currency" sortable :pt="{ 'bodyCell': { style: 'text-align: center;' } }"></Column>
-        <Column field="openedDate" header="Opened Date" sortable>
-          <template #body="slotProps">
-            {{ formatDate(slotProps.data.openedDate) }}
-          </template>
-        </Column>
       </DataTable>
     </div>
     <div v-if="!accountStore.isLoading && !accountStore.error && accountStore.accounts.length === 0">

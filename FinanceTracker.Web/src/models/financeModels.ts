@@ -5,11 +5,10 @@
 export interface Account {
   id: number;
   name: string;
-  openingBalance: number; // Was openingBalance, now represents the DTO's Balance
+  currentBalance: number; // Was openingBalance, now represents the DTO's Balance
   accountTypeName: string;
   currencySymbol: string;
   currencyDisplaySymbol: string; // Ensure this line is present
-  openedDate: string; // Was openDate, maps to DTO's OpenedDate (DateOnly as string)
   institution: string;
 }
 
