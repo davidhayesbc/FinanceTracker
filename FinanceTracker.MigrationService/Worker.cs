@@ -173,6 +173,12 @@ public class Worker(
                 if (!await dbContext.TransactionTypes.AnyAsync(tt => tt.Type == "Withdrawal", cancellationToken))
                     await dbContext.TransactionTypes.AddAsync(new TransactionType { Type = "Withdrawal" }, cancellationToken);
 
+                if (!await dbContext.TransactionTypes.AnyAsync(tt => tt.Type == "Purchase", cancellationToken))
+                    await dbContext.TransactionTypes.AddAsync(new TransactionType { Type = "Purchase" }, cancellationToken);
+
+                if (!await dbContext.TransactionTypes.AnyAsync(tt => tt.Type == "Refund", cancellationToken))
+                    await dbContext.TransactionTypes.AddAsync(new TransactionType { Type = "Refund" }, cancellationToken);
+
                 await dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
                 Console.WriteLine("SeedTransactionTypesAsync: Transaction types seeded successfully.");
