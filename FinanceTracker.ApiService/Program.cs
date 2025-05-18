@@ -355,23 +355,69 @@ void MapTransactionEndpoints(RouteGroupBuilder group)
 
     transactionEndpoints.MapGet("/", async (FinanceTackerDbContext context) =>
     {
-        var transactions = await context.Transactions.ToListAsync();
+        var transactions = await context.Transactions
+            .Include(t => t.Security)
+                .ThenInclude(s => s!.Currency) // Security can be null, handle with null conditional
+            .Include(t => t.TransactionType)
+            .Include(t => t.AccountPeriod) // Required to get AccountId
+            .Select(t => new TransactionDto
+            {
+                Id = t.Id,
+                AccountId = t.AccountPeriod.AccountId,
+                TransactionDate = t.TransactionDate,
+                Description = t.Description,
+                Quantity = t.Quantity,
+                OriginalCost = t.OriginalCost,
+                SecurityId = t.SecurityId,
+                SecuritySymbol = t.Security != null ? t.Security.Symbol : null,
+                SecurityName = t.Security != null ? t.Security.Name : null,
+                SecurityIsin = t.Security != null ? t.Security.ISIN : null,
+                SecurityTypeName = t.Security != null ? t.Security.SecurityType : null,
+                SecurityCurrencySymbol = t.Security != null && t.Security.Currency != null ? t.Security.Currency.Symbol : null,
+                TransactionTypeName = t.TransactionType.Type, // Corrected property name
+            })
+            .ToListAsync();
         return Results.Ok(transactions);
     })
     .WithName("GetAllTransactions")
-    .WithDescription("Gets all transactions")
-    .Produces<List<Transaction>>(StatusCodes.Status200OK);
+    .WithDescription("Gets all transactions with flattened security and type information.")
+    .Produces<List<TransactionDto>>(StatusCodes.Status200OK);
 
     transactionEndpoints.MapGet("/{id}", async (FinanceTackerDbContext context, int id) =>
     {
-        var transaction = await context.Transactions.FindAsync(id);
-        return transaction is not null ?
-            Results.Ok(transaction) :
-            Results.NotFound($"Transaction with ID {id} not found");
+        var transaction = await context.Transactions
+            .Where(t => t.Id == id)
+            .Include(t => t.Security)
+                .ThenInclude(s => s!.Currency) // Security can be null, handle with null conditional
+            .Include(t => t.TransactionType)
+            .Include(t => t.AccountPeriod) // Required to get AccountId
+            .Select(t => new TransactionDto
+            {
+                Id = t.Id,
+                AccountId = t.AccountPeriod.AccountId,
+                TransactionDate = t.TransactionDate,
+                Description = t.Description,
+                Quantity = t.Quantity,
+                OriginalCost = t.OriginalCost,
+                SecurityId = t.SecurityId,
+                SecuritySymbol = t.Security != null ? t.Security.Symbol : null,
+                SecurityName = t.Security != null ? t.Security.Name : null,
+                SecurityIsin = t.Security != null ? t.Security.ISIN : null,
+                SecurityTypeName = t.Security != null ? t.Security.SecurityType : null,
+                SecurityCurrencySymbol = t.Security != null && t.Security.Currency != null ? t.Security.Currency.Symbol : null,
+                TransactionTypeName = t.TransactionType.Type,
+            })
+            .FirstOrDefaultAsync();
+
+        if (transaction == null)
+        {
+            return Results.NotFound($"Transaction with ID {id} not found.");
+        }
+        return Results.Ok(transaction);
     })
     .WithName("GetTransactionById")
-    .WithDescription("Gets a transaction by its ID")
-    .Produces<Transaction>(StatusCodes.Status200OK)
+    .WithDescription("Gets a transaction by its ID with flattened security and type information.")
+    .Produces<TransactionDto>(StatusCodes.Status200OK)
     .ProducesProblem(StatusCodes.Status404NotFound);
 
     transactionEndpoints.MapGet("/{id}/transactionSplits", async (FinanceTackerDbContext context, int id) =>
@@ -411,7 +457,7 @@ void MapTransactionEndpoints(RouteGroupBuilder group)
     })
     .WithName("CreateTransaction")
     .WithDescription("Creates a new transaction")
-    .Produces<Transaction>(StatusCodes.Status201Created)
+    .Produces<Transaction>(StatusCodes.Status201Created) // Consider returning TransactionDto here as well after creation
     .ProducesProblem(StatusCodes.Status400BadRequest);
 }
 
