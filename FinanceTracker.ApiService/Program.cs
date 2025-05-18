@@ -434,30 +434,86 @@ void MapTransactionEndpoints(RouteGroupBuilder group)
     .Produces<List<TransactionSplit>>(StatusCodes.Status200OK)
     .ProducesProblem(StatusCodes.Status404NotFound);
 
-    transactionEndpoints.MapPost("/", async (FinanceTackerDbContext context, Transaction transaction) =>
+    transactionEndpoints.MapPost("/", async (FinanceTackerDbContext context, CreateTransactionRequestDto transactionDto) =>
     {
-        if (transaction == null) return Results.BadRequest("Transaction data is required");
+        if (transactionDto == null) return Results.BadRequest("Transaction data is required");
 
         var validationResults = new List<ValidationResult>();
-        if (!Validator.TryValidateObject(transaction, new ValidationContext(transaction), validationResults, true))
+        if (!Validator.TryValidateObject(transactionDto, new ValidationContext(transactionDto), validationResults, true))
         {
             return Results.BadRequest(validationResults);
         }
 
         // Validate that the account exists by checking AccountPeriod's AccountId
-        var accountPeriod = await context.AccountPeriods.FindAsync(transaction.AccountPeriodId);
+        var accountPeriod = await context.AccountPeriods.FindAsync(transactionDto.AccountPeriodId);
         if (accountPeriod == null || !await context.Accounts.AnyAsync(a => a.Id == accountPeriod.AccountId))
         {
-            return Results.BadRequest($"Account with ID {accountPeriod?.AccountId} associated with AccountPeriodId {transaction.AccountPeriodId} does not exist or AccountPeriodId is invalid.");
+            return Results.BadRequest($"Account with ID {accountPeriod?.AccountId} associated with AccountPeriodId {transactionDto.AccountPeriodId} does not exist or AccountPeriodId is invalid.");
         }
+
+        // Validate SecurityId
+        if (!await context.Securities.AnyAsync(s => s.Id == transactionDto.SecurityId))
+        {
+            return Results.BadRequest($"Security with ID {transactionDto.SecurityId} does not exist.");
+        }
+
+        // Validate TransactionTypeId
+        if (!await context.TransactionTypes.AnyAsync(tt => tt.Id == transactionDto.TransactionTypeId))
+        {
+            return Results.BadRequest($"TransactionType with ID {transactionDto.TransactionTypeId} does not exist.");
+        }
+
+        // Validate CategoryId
+        if (!await context.TransactionCategories.AnyAsync(tc => tc.Id == transactionDto.CategoryId))
+        {
+            return Results.BadRequest($"TransactionCategory with ID {transactionDto.CategoryId} does not exist.");
+        }
+
+        var transaction = new Transaction
+        {
+            TransactionDate = transactionDto.TransactionDate,
+            Quantity = transactionDto.Quantity,
+            OriginalCost = transactionDto.OriginalCost,
+            Description = transactionDto.Description,
+            TransactionTypeId = transactionDto.TransactionTypeId,
+            CategoryId = transactionDto.CategoryId,
+            AccountPeriodId = transactionDto.AccountPeriodId,
+            SecurityId = transactionDto.SecurityId
+        };
 
         context.Transactions.Add(transaction);
         await context.SaveChangesAsync();
-        return Results.Created($"/api/v1/transactions/{transaction.Id}", transaction);
+
+        // Map to TransactionDto for the response
+        var createdTransactionDto = await context.Transactions
+            .Where(t => t.Id == transaction.Id)
+            .Include(t => t.Security)
+                .ThenInclude(s => s!.Currency)
+            .Include(t => t.TransactionType)
+            .Include(t => t.AccountPeriod)
+            .Select(t => new TransactionDto
+            {
+                Id = t.Id,
+                AccountId = t.AccountPeriod.AccountId,
+                TransactionDate = t.TransactionDate,
+                Description = t.Description,
+                Quantity = t.Quantity,
+                OriginalCost = t.OriginalCost,
+                SecurityId = t.SecurityId,
+                SecuritySymbol = t.Security != null ? t.Security.Symbol : null,
+                SecurityName = t.Security != null ? t.Security.Name : null,
+                SecurityIsin = t.Security != null ? t.Security.ISIN : null,
+                SecurityTypeName = t.Security != null ? t.Security.SecurityType : null,
+                SecurityCurrencySymbol = t.Security != null && t.Security.Currency != null ? t.Security.Currency.Symbol : null,
+                TransactionTypeName = t.TransactionType.Type,
+            })
+            .FirstOrDefaultAsync();
+
+        return Results.Created($"/api/v1/transactions/{transaction.Id}", createdTransactionDto);
     })
     .WithName("CreateTransaction")
     .WithDescription("Creates a new transaction")
-    .Produces<Transaction>(StatusCodes.Status201Created) // Consider returning TransactionDto here as well after creation
+    .Produces<TransactionDto>(StatusCodes.Status201Created)
     .ProducesProblem(StatusCodes.Status400BadRequest);
 }
 
@@ -469,36 +525,73 @@ void MapTransactionSplitEndpoints(RouteGroupBuilder group)
 
     transactionSplitEndpoints.MapGet("/", async (FinanceTackerDbContext context) =>
     {
-        var transactionSplits = await context.TransactionSplits.ToListAsync();
+        var transactionSplits = await context.TransactionSplits
+            .Include(ts => ts.Category) // Include Category for CategoryName
+            .Select(ts => new TransactionSplitDto
+            {
+                Id = ts.Id,
+                TransactionId = ts.TransactionId,
+                CategoryId = ts.CategoryId,
+                CategoryName = ts.Category.Category, // Map Category.Category to CategoryName
+                Amount = ts.Amount,
+                Description = ts.Description
+            })
+            .ToListAsync();
         return Results.Ok(transactionSplits);
     })
     .WithName("GetAllTransactionSplits")
-    .WithDescription("Gets all transaction splits")
-    .Produces<List<TransactionSplit>>(StatusCodes.Status200OK);
+    .WithDescription("Gets all transaction splits with category name.")
+    .Produces<List<TransactionSplitDto>>(StatusCodes.Status200OK);
 
-    transactionSplitEndpoints.MapPost("/", async (FinanceTackerDbContext context, TransactionSplit transactionSplit) =>
+    transactionSplitEndpoints.MapPost("/", async (FinanceTackerDbContext context, CreateTransactionSplitRequestDto transactionSplitDto) =>
     {
-        if (transactionSplit == null) return Results.BadRequest("Transaction split data is required");
+        if (transactionSplitDto == null) return Results.BadRequest("Transaction split data is required");
 
         var validationResults = new List<ValidationResult>();
-        if (!Validator.TryValidateObject(transactionSplit, new ValidationContext(transactionSplit), validationResults, true))
+        if (!Validator.TryValidateObject(transactionSplitDto, new ValidationContext(transactionSplitDto), validationResults, true))
         {
             return Results.BadRequest(validationResults);
         }
 
         // Validate that the transaction exists
-        if (!await context.Transactions.AnyAsync(t => t.Id == transactionSplit.TransactionId))
+        if (!await context.Transactions.AnyAsync(t => t.Id == transactionSplitDto.TransactionId))
         {
-            return Results.BadRequest($"Transaction with ID {transactionSplit.TransactionId} does not exist");
+            return Results.BadRequest($"Transaction with ID {transactionSplitDto.TransactionId} does not exist");
         }
+
+        // Validate CategoryId
+        if (!await context.TransactionCategories.AnyAsync(tc => tc.Id == transactionSplitDto.CategoryId))
+        {
+            return Results.BadRequest($"TransactionCategory with ID {transactionSplitDto.CategoryId} does not exist.");
+        }
+
+        var transactionSplit = new TransactionSplit
+        {
+            TransactionId = transactionSplitDto.TransactionId,
+            CategoryId = transactionSplitDto.CategoryId,
+            Amount = transactionSplitDto.Amount,
+            Description = transactionSplitDto.Description
+        };
 
         context.TransactionSplits.Add(transactionSplit);
         await context.SaveChangesAsync();
-        return Results.Created($"/api/v1/transactionSplits/{transactionSplit.Id}", transactionSplit);
+
+        // Map to TransactionSplitDto for the response
+        var createdTransactionSplitDto = new TransactionSplitDto
+        {
+            Id = transactionSplit.Id,
+            TransactionId = transactionSplit.TransactionId,
+            CategoryId = transactionSplit.CategoryId,
+            CategoryName = (await context.TransactionCategories.FindAsync(transactionSplit.CategoryId))?.Category ?? string.Empty,
+            Amount = transactionSplit.Amount,
+            Description = transactionSplit.Description
+        };
+
+        return Results.Created($"/api/v1/transactionSplits/{transactionSplit.Id}", createdTransactionSplitDto);
     })
     .WithName("CreateTransactionSplit")
     .WithDescription("Creates a new transaction split")
-    .Produces<TransactionSplit>(StatusCodes.Status201Created)
+    .Produces<TransactionSplitDto>(StatusCodes.Status201Created)
     .ProducesProblem(StatusCodes.Status400BadRequest);
 }
 
