@@ -89,7 +89,7 @@ public partial class FinanceTackerDbContext : DbContext
 
             entity.ToTable("Transaction");
 
-            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Quantity).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Description).HasMaxLength(100);
 
             entity.HasOne(d => d.AccountPeriod).WithMany(p => p.Transactions)

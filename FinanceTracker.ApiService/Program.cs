@@ -154,8 +154,12 @@ void MapAccountEndpoints(RouteGroupBuilder group)
     accountEndpoints.MapGet("/", async (FinanceTackerDbContext context) =>
     {
         var accountDtos = await context.Accounts
-            .Include(a => a.AccountType) // Included for AccountTypeName
-            .Include(a => a.Currency)   // Included for CurrencySymbol and CurrencyDisplaySymbol
+            .Include(a => a.AccountType)
+            .Include(a => a.Currency) // Account's currency
+            .Include(a => a.AccountPeriods)
+                .ThenInclude(ap => ap.Transactions)
+                    .ThenInclude(t => t.Security)
+                        .ThenInclude(s => s.Currency) // Security's currency for each transaction
             .Select(a => new AccountDto
             {
                 Id = a.Id,
@@ -165,9 +169,23 @@ void MapAccountEndpoints(RouteGroupBuilder group)
                 CurrencySymbol = a.Currency != null ? a.Currency.Symbol : string.Empty,
                 CurrencyDisplaySymbol = a.Currency != null ? a.Currency.DisplaySymbol : string.Empty,
                 CurrentBalance = a.AccountPeriods
-                                    .Where(ap => ap.PeriodCloseDate == null)
-                                    .Select(ap => ap.OpeningBalance + ap.Transactions.Sum(t => t.Amount))
-                                    .FirstOrDefault() // EF Core translates this to a subquery or join
+                    .Where(ap => ap.PeriodCloseDate == null)
+                    .Select(ap => ap.OpeningBalance +
+                        ap.Transactions.Sum(t =>
+                            t.Quantity *
+                            (context.Prices
+                                .Where(price => price.SecurityId == t.SecurityId && DateOnly.FromDateTime(price.Date) <= t.TransactionDate)
+                                .OrderByDescending(price => price.Date)
+                                .Select(price => price.ClosePrice)
+                                .FirstOrDefault()) *
+                            (t.Security.CurrencyId == a.CurrencyId ? 1.0m :
+                                (context.FxRates
+                                    .Where(fx => fx.FromCurrencyId == t.Security.CurrencyId && fx.ToCurrencyId == a.CurrencyId && fx.Date <= t.TransactionDate)
+                                    .OrderByDescending(fx => fx.Date)
+                                    .Select(fx => (decimal?)fx.Rate)
+                                    .FirstOrDefault() ?? 1.0m))
+                        )
+                    ).FirstOrDefault()
             })
             .ToListAsync();
 
@@ -180,9 +198,13 @@ void MapAccountEndpoints(RouteGroupBuilder group)
     accountEndpoints.MapGet("/{id}", async (FinanceTackerDbContext context, int id) =>
     {
         var accountDto = await context.Accounts
-            .Where(a => a.Id == id)
-            .Include(a => a.AccountType) // Included for AccountTypeName
-            .Include(a => a.Currency)   // Included for CurrencySymbol and CurrencyDisplaySymbol
+            .Where(a => a.Id == id) // Filter first
+            .Include(a => a.AccountType)
+            .Include(a => a.Currency) // Account's currency
+            .Include(a => a.AccountPeriods)
+                .ThenInclude(ap => ap.Transactions)
+                    .ThenInclude(t => t.Security)
+                        .ThenInclude(s => s.Currency) // Security's currency for each transaction
             .Select(a => new AccountDto
             {
                 Id = a.Id,
@@ -192,9 +214,23 @@ void MapAccountEndpoints(RouteGroupBuilder group)
                 CurrencySymbol = a.Currency != null ? a.Currency.Symbol : string.Empty,
                 CurrencyDisplaySymbol = a.Currency != null ? a.Currency.DisplaySymbol : string.Empty,
                 CurrentBalance = a.AccountPeriods
-                                    .Where(ap => ap.PeriodCloseDate == null)
-                                    .Select(ap => ap.OpeningBalance + ap.Transactions.Sum(t => t.Amount))
-                                    .FirstOrDefault() // EF Core translates this to a subquery or join
+                    .Where(ap => ap.PeriodCloseDate == null)
+                    .Select(ap => ap.OpeningBalance +
+                        ap.Transactions.Sum(t =>
+                            t.Quantity *
+                            (context.Prices
+                                .Where(price => price.SecurityId == t.SecurityId && DateOnly.FromDateTime(price.Date) <= t.TransactionDate)
+                                .OrderByDescending(price => price.Date)
+                                .Select(price => price.ClosePrice)
+                                .FirstOrDefault()) *
+                            (t.Security.CurrencyId == a.CurrencyId ? 1.0m :
+                                (context.FxRates
+                                    .Where(fx => fx.FromCurrencyId == t.Security.CurrencyId && fx.ToCurrencyId == a.CurrencyId && fx.Date <= t.TransactionDate)
+                                    .OrderByDescending(fx => fx.Date)
+                                    .Select(fx => (decimal?)fx.Rate)
+                                    .FirstOrDefault() ?? 1.0m))
+                        )
+                    ).FirstOrDefault()
             })
             .FirstOrDefaultAsync();
 
