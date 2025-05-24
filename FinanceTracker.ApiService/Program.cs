@@ -109,4 +109,6 @@ apiV1.MapTransactionTypeEndpoints();
 app.MapDefaultEndpoints();
 
 app.Run();
-return;
+
+// Make Program class public for integration tests
+public partial class Program { }
