@@ -27,7 +27,7 @@ public class AccountBalanceIntegrationTests : IClassFixture<FinanceTrackerWebApp
     {
         // Arrange
         using var context = _factory.GetDbContext();
-        
+
         var currency = TestDataBuilder.CreateCurrency();
         var accountType = TestDataBuilder.CreateAccountType("Checking");
         context.Currencies.Add(currency);
@@ -35,8 +35,8 @@ public class AccountBalanceIntegrationTests : IClassFixture<FinanceTrackerWebApp
         await context.SaveChangesAsync();
 
         var account = TestDataBuilder.CreateCashAccount(
-            "Test Account", 
-            accountType.Id, 
+            "Test Account",
+            accountType.Id,
             currency.Id);
         context.CashAccounts.Add(account);
         await context.SaveChangesAsync();
@@ -61,13 +61,13 @@ public class AccountBalanceIntegrationTests : IClassFixture<FinanceTrackerWebApp
     {
         // Arrange
         using var context = _factory.GetDbContext();
-        
+
         // Setup basic entities
         var currency = TestDataBuilder.CreateCurrency();
         var accountType = TestDataBuilder.CreateAccountType("Checking");
         var transactionType = TestDataBuilder.CreateTransactionType("Income");
         var category = TestDataBuilder.CreateTransactionCategory("Salary");
-        
+
         context.Currencies.Add(currency);
         context.AccountTypes.Add(accountType);
         context.TransactionTypes.Add(transactionType);
@@ -75,8 +75,8 @@ public class AccountBalanceIntegrationTests : IClassFixture<FinanceTrackerWebApp
         await context.SaveChangesAsync();
 
         var account = TestDataBuilder.CreateCashAccount(
-            "Test Account", 
-            accountType.Id, 
+            "Test Account",
+            accountType.Id,
             currency.Id);
         context.CashAccounts.Add(account);
         await context.SaveChangesAsync();
@@ -88,12 +88,12 @@ public class AccountBalanceIntegrationTests : IClassFixture<FinanceTrackerWebApp
 
         // Add transactions
         var transaction1 = TestDataBuilder.CreateCashTransaction(
-            accountPeriod.Id, 500m, description: "Salary", 
+            accountPeriod.Id, 500m, description: "Salary",
             transactionTypeId: transactionType.Id, categoryId: category.Id);
         var transaction2 = TestDataBuilder.CreateCashTransaction(
-            accountPeriod.Id, -200m, description: "Grocery", 
+            accountPeriod.Id, -200m, description: "Grocery",
             transactionTypeId: transactionType.Id, categoryId: category.Id);
-        
+
         context.CashTransactions.AddRange(transaction1, transaction2);
         await context.SaveChangesAsync();
 
@@ -104,7 +104,7 @@ public class AccountBalanceIntegrationTests : IClassFixture<FinanceTrackerWebApp
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var accountDto = await response.Content.ReadFromJsonAsync<CashAccountDto>();
         accountDto.Should().NotBeNull();
-        
+
         // Expected: Opening Balance (1000) + Transaction1 (500) + Transaction2 (-200) = 1300
         accountDto!.CurrentBalance.Should().Be(1300m);
     }
@@ -114,13 +114,13 @@ public class AccountBalanceIntegrationTests : IClassFixture<FinanceTrackerWebApp
     {
         // Arrange
         using var context = _factory.GetDbContext();
-        
+
         // Setup basic entities
         var currency = TestDataBuilder.CreateCurrency();
         var accountType = TestDataBuilder.CreateAccountType("Investment");
         var transactionType = TestDataBuilder.CreateTransactionType("Buy");
         var category = TestDataBuilder.CreateTransactionCategory("Investment Purchase");
-        
+
         context.Currencies.Add(currency);
         context.AccountTypes.Add(accountType);
         context.TransactionTypes.Add(transactionType);
@@ -128,8 +128,8 @@ public class AccountBalanceIntegrationTests : IClassFixture<FinanceTrackerWebApp
         await context.SaveChangesAsync();
 
         var account = TestDataBuilder.CreateInvestmentAccount(
-            "Test Investment Account", 
-            accountType.Id, 
+            "Test Investment Account",
+            accountType.Id,
             currency.Id);
         context.InvestmentAccounts.Add(account);
         await context.SaveChangesAsync();
@@ -150,7 +150,7 @@ public class AccountBalanceIntegrationTests : IClassFixture<FinanceTrackerWebApp
         var transaction2 = TestDataBuilder.CreateInvestmentTransaction(
             accountPeriod.Id, security.Id, quantity: 5m, price: 150m,
             transactionTypeId: transactionType.Id, categoryId: category.Id);
-        
+
         context.InvestmentTransactions.AddRange(transaction1, transaction2);
         await context.SaveChangesAsync();
 
@@ -161,7 +161,7 @@ public class AccountBalanceIntegrationTests : IClassFixture<FinanceTrackerWebApp
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var accountDto = await response.Content.ReadFromJsonAsync<InvestmentAccountDto>();
         accountDto.Should().NotBeNull();
-        
+
         // Expected: Opening Balance (10000) + Transaction1 (10 * 100) + Transaction2 (5 * 150) = 11750
         accountDto!.CurrentBalance.Should().Be(11750m);
     }
@@ -171,13 +171,13 @@ public class AccountBalanceIntegrationTests : IClassFixture<FinanceTrackerWebApp
     {
         // Arrange
         using var context = _factory.GetDbContext();
-        
+
         // Setup basic entities
         var currency = TestDataBuilder.CreateCurrency();
         var accountType = TestDataBuilder.CreateAccountType("Checking");
         var transactionType = TestDataBuilder.CreateTransactionType("Income");
         var category = TestDataBuilder.CreateTransactionCategory("Salary");
-        
+
         context.Currencies.Add(currency);
         context.AccountTypes.Add(accountType);
         context.TransactionTypes.Add(transactionType);
@@ -185,15 +185,15 @@ public class AccountBalanceIntegrationTests : IClassFixture<FinanceTrackerWebApp
         await context.SaveChangesAsync();
 
         var account = TestDataBuilder.CreateCashAccount(
-            "Test Account", 
-            accountType.Id, 
+            "Test Account",
+            accountType.Id,
             currency.Id);
         context.CashAccounts.Add(account);
         await context.SaveChangesAsync();
 
         // Create closed period with transactions
         var closedPeriod = TestDataBuilder.CreateAccountPeriod(
-            account.Id, 
+            account.Id,
             openingBalance: 1000m,
             periodStart: DateOnly.FromDateTime(DateTime.Today.AddMonths(-2)),
             periodEnd: DateOnly.FromDateTime(DateTime.Today.AddMonths(-1)),
@@ -209,7 +209,7 @@ public class AccountBalanceIntegrationTests : IClassFixture<FinanceTrackerWebApp
 
         // Create open period with transactions
         var openPeriod = TestDataBuilder.CreateAccountPeriod(
-            account.Id, 
+            account.Id,
             openingBalance: 1200m,
             periodStart: DateOnly.FromDateTime(DateTime.Today.AddMonths(-1)));
         context.AccountPeriods.Add(openPeriod);
@@ -228,7 +228,7 @@ public class AccountBalanceIntegrationTests : IClassFixture<FinanceTrackerWebApp
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var accountDto = await response.Content.ReadFromJsonAsync<CashAccountDto>();
         accountDto.Should().NotBeNull();
-        
+
         // Expected: Only open period balance: Opening (1200) + New Transaction (300) = 1500
         // Closed period should not affect the calculation
         accountDto!.CurrentBalance.Should().Be(1500m);
@@ -239,14 +239,14 @@ public class AccountBalanceIntegrationTests : IClassFixture<FinanceTrackerWebApp
     {
         // Arrange
         using var context = _factory.GetDbContext();
-        
+
         // Setup basic entities
         var currency = TestDataBuilder.CreateCurrency();
         var checkingType = TestDataBuilder.CreateAccountType("Checking");
         var investmentType = TestDataBuilder.CreateAccountType("Investment");
         var transactionType = TestDataBuilder.CreateTransactionType("Income");
         var category = TestDataBuilder.CreateTransactionCategory("Test Category");
-        
+
         context.Currencies.Add(currency);
         context.AccountTypes.AddRange(checkingType, investmentType);
         context.TransactionTypes.Add(transactionType);
@@ -257,7 +257,7 @@ public class AccountBalanceIntegrationTests : IClassFixture<FinanceTrackerWebApp
         var cashAccount = TestDataBuilder.CreateCashAccount(
             "Cash Account", checkingType.Id, currency.Id);
         context.CashAccounts.Add(cashAccount);
-        
+
         // Create investment account
         var investmentAccount = TestDataBuilder.CreateInvestmentAccount(
             "Investment Account", investmentType.Id, currency.Id);
@@ -309,13 +309,13 @@ public class AccountBalanceIntegrationTests : IClassFixture<FinanceTrackerWebApp
     {
         // Arrange
         using var context = _factory.GetDbContext();
-        
+
         // Setup basic entities
         var currency = TestDataBuilder.CreateCurrency();
         var accountType = TestDataBuilder.CreateAccountType("Checking");
         var transactionType = TestDataBuilder.CreateTransactionType("Transfer");
         var category = TestDataBuilder.CreateTransactionCategory("Transfer");
-        
+
         context.Currencies.Add(currency);
         context.AccountTypes.Add(accountType);
         context.TransactionTypes.Add(transactionType);
@@ -344,7 +344,7 @@ public class AccountBalanceIntegrationTests : IClassFixture<FinanceTrackerWebApp
         var transferInTransaction = TestDataBuilder.CreateCashTransaction(
             targetPeriod.Id, 300m, description: "Transfer In",
             transactionTypeId: transactionType.Id, categoryId: category.Id);
-        
+
         context.CashTransactions.AddRange(transferOutTransaction, transferInTransaction);
         await context.SaveChangesAsync();
 

@@ -227,7 +227,7 @@ public static class TestDataBuilder
         context.TransactionTypes.RemoveRange(context.TransactionTypes);
         context.AccountTypes.RemoveRange(context.AccountTypes);
         context.Currencies.RemoveRange(context.Currencies);
-        
+
         await context.SaveChangesAsync();
     }
 }

@@ -41,7 +41,7 @@ public class AccountPeriodIntegrationTests : IClassFixture<FinanceTrackerWebAppl
         // Act - Close the current period and create a new one
         initialPeriod.PeriodCloseDate = DateOnly.FromDateTime(DateTime.Today);
         var newPeriod = TestDataBuilder.CreateAccountPeriod(
-            account.Id, 
+            account.Id,
             expectedEndingBalance, // New period should start with previous period's ending balance
             DateOnly.FromDateTime(DateTime.Today.AddDays(1))
         );
@@ -51,7 +51,7 @@ public class AccountPeriodIntegrationTests : IClassFixture<FinanceTrackerWebAppl
         // Assert - Verify the new period has correct opening balance
         var accountResponse = await _client.GetAsync($"/api/v1/accounts/{account.Id}");
         var accountDto = await accountResponse.Content.ReadFromJsonAsync<CashAccountDto>();
-        
+
         accountDto.Should().NotBeNull();
         accountDto!.CurrentBalance.Should().Be(expectedEndingBalance); // Should equal the new period's opening balance
     }
@@ -82,9 +82,9 @@ public class AccountPeriodIntegrationTests : IClassFixture<FinanceTrackerWebAppl
         await context.SaveChangesAsync();
 
         // Assert - Verify the closed period has correct final balance
-        var closedPeriodBalance = accountPeriod.OpeningBalance + 
+        var closedPeriodBalance = accountPeriod.OpeningBalance +
             context.CashTransactions.Where(t => t.AccountPeriodId == accountPeriod.Id).Sum(t => t.Amount);
-        
+
         closedPeriodBalance.Should().Be(expectedFinalBalance);
     }
 
@@ -109,7 +109,7 @@ public class AccountPeriodIntegrationTests : IClassFixture<FinanceTrackerWebAppl
         // Act - Close first period and create second period
         period1.PeriodCloseDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-1));
         var period2 = TestDataBuilder.CreateAccountPeriod(
-            account.Id, 
+            account.Id,
             period1EndingBalance,
             DateOnly.FromDateTime(DateTime.Today)
         );
@@ -128,7 +128,7 @@ public class AccountPeriodIntegrationTests : IClassFixture<FinanceTrackerWebAppl
         // Assert - Verify both periods have correct balances
         var accountResponse = await _client.GetAsync($"/api/v1/accounts/{account.Id}");
         var accountDto = await accountResponse.Content.ReadFromJsonAsync<CashAccountDto>();
-        
+
         // Current balance should reflect period 2's transactions
         var expectedCurrentBalance = period1EndingBalance + 300m - 100m; // 750 + 200 = 950
         accountDto!.CurrentBalance.Should().Be(expectedCurrentBalance);
@@ -160,7 +160,7 @@ public class AccountPeriodIntegrationTests : IClassFixture<FinanceTrackerWebAppl
         // Close first period and create second period
         period1.PeriodCloseDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-1));
         var period2 = TestDataBuilder.CreateAccountPeriod(
-            account.Id, 
+            account.Id,
             1100m, // 1000 + 100
             DateOnly.FromDateTime(DateTime.Today)
         );
@@ -179,7 +179,7 @@ public class AccountPeriodIntegrationTests : IClassFixture<FinanceTrackerWebAppl
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var transactions = await response.Content.ReadFromJsonAsync<List<CashTransactionDto>>();
-        
+
         transactions.Should().NotBeNull();
         transactions!.Should().HaveCount(2); // Only current period transactions
         transactions.Should().Contain(t => t.Description == "Period 2 Transaction 1");
@@ -201,11 +201,11 @@ public class AccountPeriodIntegrationTests : IClassFixture<FinanceTrackerWebAppl
         for (int i = 0; i < 3; i++)
         {
             var currentPeriod = periods[i];
-            
+
             // Add transactions to current period
             var income = (i + 1) * 500m; // 500, 1000, 1500
             var expense = (i + 1) * 200m; // 200, 400, 600
-            
+
             var incomeTransaction = TestDataBuilder.CreateCashTransaction(currentPeriod.Id, income, description: $"Income Period {i + 1}");
             var expenseTransaction = TestDataBuilder.CreateCashTransaction(currentPeriod.Id, -expense, description: $"Expense Period {i + 1}");
             context.CashTransactions.AddRange(incomeTransaction, expenseTransaction);
@@ -235,7 +235,7 @@ public class AccountPeriodIntegrationTests : IClassFixture<FinanceTrackerWebAppl
         // Assert
         var accountDto = await accountResponse.Content.ReadFromJsonAsync<CashAccountDto>();
         accountDto.Should().NotBeNull();
-        
+
         // Final balance should be the last expected balance
         var finalExpectedBalance = expectedBalances.Last();
         accountDto!.CurrentBalance.Should().Be(finalExpectedBalance);
@@ -247,7 +247,7 @@ public class AccountPeriodIntegrationTests : IClassFixture<FinanceTrackerWebAppl
             .ToListAsync();
 
         allPeriods.Should().HaveCount(4); // Original + 3 additional periods
-        
+
         // First 3 periods should be closed, last should be open
         for (int i = 0; i < 3; i++)
         {
@@ -258,10 +258,10 @@ public class AccountPeriodIntegrationTests : IClassFixture<FinanceTrackerWebAppl
         // Verify balance continuity between periods
         for (int i = 1; i < allPeriods.Count; i++)
         {
-            var previousPeriodBalance = allPeriods[i - 1].OpeningBalance + 
+            var previousPeriodBalance = allPeriods[i - 1].OpeningBalance +
                 context.CashTransactions.Where(t => t.AccountPeriodId == allPeriods[i - 1].Id).Sum(t => t.Amount);
-            
-            allPeriods[i].OpeningBalance.Should().Be(previousPeriodBalance, 
+
+            allPeriods[i].OpeningBalance.Should().Be(previousPeriodBalance,
                 $"Period {i + 1} opening balance should equal Period {i} ending balance");
         }
     }
@@ -278,7 +278,7 @@ public class AccountPeriodIntegrationTests : IClassFixture<FinanceTrackerWebAppl
             accountPeriod.Id, security.Id, 10m, 100m, description: "Buy Stock");
         var sellTransaction = TestDataBuilder.CreateInvestmentTransaction(
             accountPeriod.Id, security.Id, -5m, 110m, description: "Sell Stock");
-        
+
         context.InvestmentTransactions.AddRange(buyTransaction, sellTransaction);
         await context.SaveChangesAsync();
 
@@ -288,7 +288,7 @@ public class AccountPeriodIntegrationTests : IClassFixture<FinanceTrackerWebAppl
         // Assert
         var accountDto = await accountResponse.Content.ReadFromJsonAsync<InvestmentAccountDto>();
         accountDto.Should().NotBeNull();
-        
+
         // Expected balance: opening (1000) + (10 * 100) + (-5 * 110) = 1000 + 1000 - 550 = 1450
         var expectedBalance = 1000m + (10m * 100m) + (-5m * 110m);
         accountDto!.CurrentBalance.Should().Be(expectedBalance);
@@ -297,8 +297,8 @@ public class AccountPeriodIntegrationTests : IClassFixture<FinanceTrackerWebAppl
     #region Helper Methods
 
     private async Task<(CashAccount account, AccountPeriod period)> SetupCashAccountWithTransactionsAsync(
-        FinanceTackerDbContext context, 
-        string accountName = "Test Account", 
+        FinanceTackerDbContext context,
+        string accountName = "Test Account",
         decimal openingBalance = 1000m)
     {
         // Setup basic entities if they don't exist
@@ -332,8 +332,8 @@ public class AccountPeriodIntegrationTests : IClassFixture<FinanceTrackerWebAppl
     }
 
     private async Task<(InvestmentAccount account, AccountPeriod period, Security security)> SetupInvestmentAccountWithTransactionsAsync(
-        FinanceTackerDbContext context, 
-        string accountName = "Test Investment Account", 
+        FinanceTackerDbContext context,
+        string accountName = "Test Investment Account",
         decimal openingBalance = 1000m)
     {
         // Setup basic entities if they don't exist

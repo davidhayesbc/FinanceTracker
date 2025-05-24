@@ -48,17 +48,17 @@ public class RecurringTransactionIntegrationTests : IClassFixture<WebApplication
         var account = TestDataBuilder.CreateCashAccount();
         var transactionType = TestDataBuilder.CreateTransactionType();
         var category = TestDataBuilder.CreateTransactionCategory();
-        
+
         context.CashAccounts.Add(account);
         context.TransactionTypes.Add(transactionType);
         context.TransactionCategories.Add(category);
         await context.SaveChangesAsync();
 
         var recurringTransaction = TestDataBuilder.CreateRecurringTransaction(
-            cashAccountId: account.Id, 
-            transactionTypeId: transactionType.Id, 
+            cashAccountId: account.Id,
+            transactionTypeId: transactionType.Id,
             categoryId: category.Id);
-        
+
         context.RecurringTransactions.Add(recurringTransaction);
         await context.SaveChangesAsync();
 
@@ -84,7 +84,7 @@ public class RecurringTransactionIntegrationTests : IClassFixture<WebApplication
         var account = TestDataBuilder.CreateCashAccount();
         var transactionType = TestDataBuilder.CreateTransactionType();
         var category = TestDataBuilder.CreateTransactionCategory();
-        
+
         context.CashAccounts.Add(account);
         context.TransactionTypes.Add(transactionType);
         context.TransactionCategories.Add(category);
@@ -134,7 +134,7 @@ public class RecurringTransactionIntegrationTests : IClassFixture<WebApplication
 
         var transactionType = TestDataBuilder.CreateTransactionType();
         var category = TestDataBuilder.CreateTransactionCategory();
-        
+
         context.TransactionTypes.Add(transactionType);
         context.TransactionCategories.Add(category);
         await context.SaveChangesAsync();
@@ -169,7 +169,7 @@ public class RecurringTransactionIntegrationTests : IClassFixture<WebApplication
         var account = TestDataBuilder.CreateCashAccount();
         var transactionType = TestDataBuilder.CreateTransactionType();
         var category = TestDataBuilder.CreateTransactionCategory();
-        
+
         context.CashAccounts.Add(account);
         context.TransactionTypes.Add(transactionType);
         context.TransactionCategories.Add(category);
@@ -177,7 +177,7 @@ public class RecurringTransactionIntegrationTests : IClassFixture<WebApplication
 
         var startDate = DateOnly.FromDateTime(DateTime.Now);
         var endDate = DateOnly.FromDateTime(DateTime.Now.AddMonths(12));
-        
+
         var newRecurringTransaction = new RecurringTransaction
         {
             StartDate = startDate,
@@ -212,7 +212,7 @@ public class RecurringTransactionIntegrationTests : IClassFixture<WebApplication
         var account = TestDataBuilder.CreateCashAccount();
         var transactionType = TestDataBuilder.CreateTransactionType();
         var category = TestDataBuilder.CreateTransactionCategory();
-        
+
         context.CashAccounts.Add(account);
         context.TransactionTypes.Add(transactionType);
         context.TransactionCategories.Add(category);
@@ -251,7 +251,7 @@ public class RecurringTransactionIntegrationTests : IClassFixture<WebApplication
         var account = TestDataBuilder.CreateCashAccount();
         var transactionType = TestDataBuilder.CreateTransactionType();
         var category = TestDataBuilder.CreateTransactionCategory();
-        
+
         context.CashAccounts.Add(account);
         context.TransactionTypes.Add(transactionType);
         context.TransactionCategories.Add(category);

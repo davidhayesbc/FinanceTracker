@@ -43,7 +43,7 @@ public class EdgeCaseIntegrationTests : IClassFixture<FinanceTrackerWebApplicati
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
-        
+
         // Verify account balance remains unchanged
         var accountResponse = await _client.GetAsync($"/api/v1/accounts/{account.Id}");
         var accountDto = await accountResponse.Content.ReadFromJsonAsync<CashAccountDto>();
@@ -71,7 +71,7 @@ public class EdgeCaseIntegrationTests : IClassFixture<FinanceTrackerWebApplicati
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
-        
+
         // Verify account balance updated correctly
         var accountResponse = await _client.GetAsync($"/api/v1/accounts/{account.Id}");
         var accountDto = await accountResponse.Content.ReadFromJsonAsync<CashAccountDto>();
@@ -99,7 +99,7 @@ public class EdgeCaseIntegrationTests : IClassFixture<FinanceTrackerWebApplicati
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
-        
+
         // Verify account balance updated correctly
         var accountResponse = await _client.GetAsync($"/api/v1/accounts/{account.Id}");
         var accountDto = await accountResponse.Content.ReadFromJsonAsync<CashAccountDto>();
@@ -127,7 +127,7 @@ public class EdgeCaseIntegrationTests : IClassFixture<FinanceTrackerWebApplicati
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
-        
+
         var createdTransaction = await response.Content.ReadFromJsonAsync<CashTransaction>();
         createdTransaction!.TransactionDate.Should().Be(DateOnly.FromDateTime(DateTime.Today.AddDays(30)));
     }
@@ -153,7 +153,7 @@ public class EdgeCaseIntegrationTests : IClassFixture<FinanceTrackerWebApplicati
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
-        
+
         var createdTransaction = await response.Content.ReadFromJsonAsync<CashTransaction>();
         createdTransaction!.TransactionDate.Should().Be(DateOnly.FromDateTime(DateTime.Today.AddYears(-10)));
     }
@@ -400,7 +400,7 @@ public class EdgeCaseIntegrationTests : IClassFixture<FinanceTrackerWebApplicati
         // Verify final balance is correct
         var accountResponse = await _client.GetAsync($"/api/v1/accounts/{account.Id}");
         var accountDto = await accountResponse.Content.ReadFromJsonAsync<CashAccountDto>();
-        
+
         // Expected: 1000 + (50 * 10) + (50 * -5) = 1000 + 500 - 250 = 1250
         var expectedBalance = 1000m + (50 * 10m) + (50 * -5m);
         accountDto!.CurrentBalance.Should().Be(expectedBalance);
@@ -433,8 +433,8 @@ public class EdgeCaseIntegrationTests : IClassFixture<FinanceTrackerWebApplicati
     #region Helper Methods
 
     private async Task<(CashAccount account, AccountPeriod period)> SetupBasicCashAccountAsync(
-        FinanceTackerDbContext context, 
-        string accountName = "Test Account", 
+        FinanceTackerDbContext context,
+        string accountName = "Test Account",
         decimal openingBalance = 1000m)
     {
         // Setup basic entities if they don't exist
@@ -468,8 +468,8 @@ public class EdgeCaseIntegrationTests : IClassFixture<FinanceTrackerWebApplicati
     }
 
     private async Task<(InvestmentAccount account, AccountPeriod period, Security security)> SetupBasicInvestmentAccountAsync(
-        FinanceTackerDbContext context, 
-        string accountName = "Test Investment Account", 
+        FinanceTackerDbContext context,
+        string accountName = "Test Investment Account",
         decimal openingBalance = 1000m)
     {
         // Setup basic entities if they don't exist

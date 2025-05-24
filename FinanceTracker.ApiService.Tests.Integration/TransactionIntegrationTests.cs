@@ -29,7 +29,7 @@ public class TransactionIntegrationTests : IClassFixture<FinanceTrackerWebApplic
         // Arrange
         using var context = _factory.GetDbContext();
         var (account, accountPeriod) = await SetupBasicCashAccountAsync(context);
-        
+
         var createTransactionDto = new CreateCashTransactionRequestDto
         {
             TransactionDate = DateOnly.FromDateTime(DateTime.Today),
@@ -62,7 +62,7 @@ public class TransactionIntegrationTests : IClassFixture<FinanceTrackerWebApplic
         // Arrange
         using var context = _factory.GetDbContext();
         var (account, accountPeriod, security) = await SetupBasicInvestmentAccountAsync(context);
-        
+
         var createTransactionDto = new CreateInvestmentTransactionRequestDto
         {
             TransactionDate = DateOnly.FromDateTime(DateTime.Today),
@@ -98,7 +98,7 @@ public class TransactionIntegrationTests : IClassFixture<FinanceTrackerWebApplic
         using var context = _factory.GetDbContext();
         var (sourceAccount, sourcePeriod) = await SetupBasicCashAccountAsync(context, "Source Account", 1000m);
         var (targetAccount, targetPeriod) = await SetupAdditionalCashAccountAsync(context, "Target Account", 500m);
-        
+
         var transferAmount = 300m;
 
         // Create transfer out transaction (from source)
@@ -150,7 +150,7 @@ public class TransactionIntegrationTests : IClassFixture<FinanceTrackerWebApplic
 
         // Create a closed period with a transaction
         var closedPeriod = TestDataBuilder.CreateAccountPeriod(
-            account.Id, 
+            account.Id,
             openingBalance: 800m,
             periodStart: DateOnly.FromDateTime(DateTime.Today.AddMonths(-2)),
             periodEnd: DateOnly.FromDateTime(DateTime.Today.AddMonths(-1)),
@@ -229,7 +229,7 @@ public class TransactionIntegrationTests : IClassFixture<FinanceTrackerWebApplic
 
         var createResponse = await _client.PostAsJsonAsync("/api/v1/transactions/cash", createTransactionDto);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-        
+
         var createdTransaction = await createResponse.Content.ReadFromJsonAsync<CashTransaction>();
 
         // Create transaction splits
@@ -323,8 +323,8 @@ public class TransactionIntegrationTests : IClassFixture<FinanceTrackerWebApplic
     #region Helper Methods
 
     private async Task<(CashAccount account, AccountPeriod period)> SetupBasicCashAccountAsync(
-        FinanceTackerDbContext context, 
-        string accountName = "Test Account", 
+        FinanceTackerDbContext context,
+        string accountName = "Test Account",
         decimal openingBalance = 1000m)
     {
         // Setup basic entities if they don't exist
@@ -358,8 +358,8 @@ public class TransactionIntegrationTests : IClassFixture<FinanceTrackerWebApplic
     }
 
     private async Task<(CashAccount account, AccountPeriod period)> SetupAdditionalCashAccountAsync(
-        FinanceTackerDbContext context, 
-        string accountName, 
+        FinanceTackerDbContext context,
+        string accountName,
         decimal openingBalance = 500m)
     {
         var existingCurrency = await context.Currencies.FirstAsync();
