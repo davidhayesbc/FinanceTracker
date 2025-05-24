@@ -20,16 +20,14 @@ public static class AccountEndpoints
             .WithTags("Accounts")
             .WithGroupName("Accounts");
 
+        // Get all accounts (both cash and investment)
         accountEndpoints.MapGet("/", async (FinanceTackerDbContext context) =>
         {
-            var accountDtos = await context.Accounts
+            var cashAccounts = await context.CashAccounts
                 .Include(a => a.AccountType)
                 .Include(a => a.Currency)
                 .Include(a => a.AccountPeriods)
-                    .ThenInclude(ap => ap.Transactions)
-                        .ThenInclude(t => t.Security)
-                            .ThenInclude(s => s.Currency)
-                .Select(a => new AccountDto
+                .Select(a => new CashAccountDto
                 {
                     Id = a.Id,
                     Name = a.Name,
@@ -37,44 +35,126 @@ public static class AccountEndpoints
                     AccountTypeName = a.AccountType != null ? a.AccountType.Type : string.Empty,
                     CurrencySymbol = a.Currency != null ? a.Currency.Symbol : string.Empty,
                     CurrencyDisplaySymbol = a.Currency != null ? a.Currency.DisplaySymbol : string.Empty,
+                    IsActive = a.IsActive,
+                    AccountKind = "Cash",
+                    OverdraftLimit = a.OverdraftLimit,
                     CurrentBalance = a.AccountPeriods
                         .Where(ap => ap.PeriodCloseDate == null)
-                        .Select(ap => ap.OpeningBalance +
-                            ap.Transactions.Sum(t =>
-                                t.Quantity *
-                                (context.Prices
-                                    .Where(price => price.SecurityId == t.SecurityId && DateOnly.FromDateTime(price.Date) <= t.TransactionDate)
-                                    .OrderByDescending(price => price.Date)
-                                    .Select(price => price.ClosePrice)
-                                    .FirstOrDefault()) *
-                                (t.Security.CurrencyId == a.CurrencyId ? 1.0m :
-                                    (context.FxRates
-                                        .Where(fx => fx.FromCurrencyId == t.Security.CurrencyId && fx.ToCurrencyId == a.CurrencyId && fx.Date <= t.TransactionDate)
-                                        .OrderByDescending(fx => fx.Date)
-                                        .Select(fx => (decimal?)fx.Rate)
-                                        .FirstOrDefault() ?? 1.0m))
-                            )
-                        ).FirstOrDefault()
+                        .Select(ap => ap.OpeningBalance + ap.Transactions.OfType<CashTransaction>().Sum(t => t.Amount))
+                        .FirstOrDefault()
                 })
                 .ToListAsync();
 
-            return Results.Ok(accountDtos);
+            var investmentAccounts = await context.InvestmentAccounts
+                .Include(a => a.AccountType)
+                .Include(a => a.Currency)
+                .Include(a => a.AccountPeriods)
+                .Select(a => new InvestmentAccountDto
+                {
+                    Id = a.Id,
+                    Name = a.Name,
+                    Institution = a.Institution,
+                    AccountTypeName = a.AccountType != null ? a.AccountType.Type : string.Empty,
+                    CurrencySymbol = a.Currency != null ? a.Currency.Symbol : string.Empty,
+                    CurrencyDisplaySymbol = a.Currency != null ? a.Currency.DisplaySymbol : string.Empty,
+                    IsActive = a.IsActive,
+                    AccountKind = "Investment",
+                    BrokerAccountNumber = a.BrokerAccountNumber,
+                    IsTaxAdvantaged = a.IsTaxAdvantaged,
+                    TaxAdvantageType = a.TaxAdvantageType,
+                    CurrentBalance = a.AccountPeriods
+                        .Where(ap => ap.PeriodCloseDate == null)
+                        .Select(ap => ap.OpeningBalance +
+                            ap.Transactions.OfType<InvestmentTransaction>().Sum(t => t.Quantity * t.Price))
+                        .FirstOrDefault()
+                })
+                .ToListAsync();
+
+            var allAccounts = new List<AccountBaseDto>();
+            allAccounts.AddRange(cashAccounts);
+            allAccounts.AddRange(investmentAccounts);
+
+            return Results.Ok(allAccounts);
         })
         .WithName("GetAllAccounts")
-        .WithDescription("Gets all accounts with flattened related data, including calculated current balance from the open account period.")
-        .Produces<List<AccountDto>>(StatusCodes.Status200OK);
+        .WithDescription("Gets all accounts (both cash and investment) with calculated balances.")
+        .Produces<List<AccountBaseDto>>(StatusCodes.Status200OK);
 
+        // Get cash accounts only
+        accountEndpoints.MapGet("/cash", async (FinanceTackerDbContext context) =>
+        {
+            var cashAccounts = await context.CashAccounts
+                .Include(a => a.AccountType)
+                .Include(a => a.Currency)
+                .Include(a => a.AccountPeriods)
+                .Select(a => new CashAccountDto
+                {
+                    Id = a.Id,
+                    Name = a.Name,
+                    Institution = a.Institution,
+                    AccountTypeName = a.AccountType != null ? a.AccountType.Type : string.Empty,
+                    CurrencySymbol = a.Currency != null ? a.Currency.Symbol : string.Empty,
+                    CurrencyDisplaySymbol = a.Currency != null ? a.Currency.DisplaySymbol : string.Empty,
+                    IsActive = a.IsActive,
+                    AccountKind = "Cash",
+                    OverdraftLimit = a.OverdraftLimit,
+                    CurrentBalance = a.AccountPeriods
+                        .Where(ap => ap.PeriodCloseDate == null)
+                        .Select(ap => ap.OpeningBalance + ap.Transactions.OfType<CashTransaction>().Sum(t => t.Amount))
+                        .FirstOrDefault()
+                })
+                .ToListAsync();
+
+            return Results.Ok(cashAccounts);
+        })
+        .WithName("GetCashAccounts")
+        .WithDescription("Gets all cash accounts with calculated balances.")
+        .Produces<List<CashAccountDto>>(StatusCodes.Status200OK);
+
+        // Get investment accounts only
+        accountEndpoints.MapGet("/investment", async (FinanceTackerDbContext context) =>
+        {
+            var investmentAccounts = await context.InvestmentAccounts
+                .Include(a => a.AccountType)
+                .Include(a => a.Currency)
+                .Include(a => a.AccountPeriods)
+                .Select(a => new InvestmentAccountDto
+                {
+                    Id = a.Id,
+                    Name = a.Name,
+                    Institution = a.Institution,
+                    AccountTypeName = a.AccountType != null ? a.AccountType.Type : string.Empty,
+                    CurrencySymbol = a.Currency != null ? a.Currency.Symbol : string.Empty,
+                    CurrencyDisplaySymbol = a.Currency != null ? a.Currency.DisplaySymbol : string.Empty,
+                    IsActive = a.IsActive,
+                    AccountKind = "Investment",
+                    BrokerAccountNumber = a.BrokerAccountNumber,
+                    IsTaxAdvantaged = a.IsTaxAdvantaged,
+                    TaxAdvantageType = a.TaxAdvantageType,
+                    CurrentBalance = a.AccountPeriods
+                        .Where(ap => ap.PeriodCloseDate == null)
+                        .Select(ap => ap.OpeningBalance +
+                            ap.Transactions.OfType<InvestmentTransaction>().Sum(t => t.Quantity * t.Price))
+                        .FirstOrDefault()
+                })
+                .ToListAsync();
+
+            return Results.Ok(investmentAccounts);
+        })
+        .WithName("GetInvestmentAccounts")
+        .WithDescription("Gets all investment accounts with calculated balances.")
+        .Produces<List<InvestmentAccountDto>>(StatusCodes.Status200OK);
+
+        // Get account by ID (determines type automatically)
         accountEndpoints.MapGet("/{id}", async (FinanceTackerDbContext context, int id) =>
         {
-            var accountDto = await context.Accounts
+            // Try to find as cash account first
+            var cashAccount = await context.CashAccounts
                 .Where(a => a.Id == id)
                 .Include(a => a.AccountType)
                 .Include(a => a.Currency)
                 .Include(a => a.AccountPeriods)
-                    .ThenInclude(ap => ap.Transactions)
-                        .ThenInclude(t => t.Security)
-                            .ThenInclude(s => s.Currency)
-                .Select(a => new AccountDto
+                .Select(a => new CashAccountDto
                 {
                     Id = a.Id,
                     Name = a.Name,
@@ -82,96 +162,150 @@ public static class AccountEndpoints
                     AccountTypeName = a.AccountType != null ? a.AccountType.Type : string.Empty,
                     CurrencySymbol = a.Currency != null ? a.Currency.Symbol : string.Empty,
                     CurrencyDisplaySymbol = a.Currency != null ? a.Currency.DisplaySymbol : string.Empty,
+                    IsActive = a.IsActive,
+                    AccountKind = "Cash",
+                    OverdraftLimit = a.OverdraftLimit,
                     CurrentBalance = a.AccountPeriods
                         .Where(ap => ap.PeriodCloseDate == null)
-                        .Select(ap => ap.OpeningBalance +
-                            ap.Transactions.Sum(t =>
-                                t.Quantity *
-                                (context.Prices
-                                    .Where(price => price.SecurityId == t.SecurityId && DateOnly.FromDateTime(price.Date) <= t.TransactionDate)
-                                    .OrderByDescending(price => price.Date)
-                                    .Select(price => price.ClosePrice)
-                                    .FirstOrDefault()) *
-                                (t.Security.CurrencyId == a.CurrencyId ? 1.0m :
-                                    (context.FxRates
-                                        .Where(fx => fx.FromCurrencyId == t.Security.CurrencyId && fx.ToCurrencyId == a.CurrencyId && fx.Date <= t.TransactionDate)
-                                        .OrderByDescending(fx => fx.Date)
-                                        .Select(fx => (decimal?)fx.Rate)
-                                        .FirstOrDefault() ?? 1.0m))
-                            )
-                        ).FirstOrDefault()
+                        .Select(ap => ap.OpeningBalance + ap.Transactions.OfType<CashTransaction>().Sum(t => t.Amount))
+                        .FirstOrDefault()
                 })
                 .FirstOrDefaultAsync();
 
-            if (accountDto == null)
+            if (cashAccount != null)
             {
-                return Results.NotFound($"Account with ID {id} not found.");
+                return Results.Ok(cashAccount);
             }
 
-            return Results.Ok(accountDto);
-        })
-        .WithName("GetAccountById")
-        .WithDescription("Gets an account by its ID, including calculated current balance from the open account period.")
-        .Produces<AccountDto>(StatusCodes.Status200OK)
-        .ProducesProblem(StatusCodes.Status404NotFound);
-
-        accountEndpoints.MapGet("/{id}/transactions", async (FinanceTackerDbContext context, int id) =>
-        {
-            var accountExists = await context.Accounts.AnyAsync(a => a.Id == id);
-            if (!accountExists)
-            {
-                return Results.NotFound($"Account with ID {id} not found");
-            }
-
-            var currentPeriodWithTransactions = await context.AccountPeriods
-                .Include(ap => ap.Transactions)
-                .Where(ap => ap.AccountId == id && ap.PeriodCloseDate == null)
+            // Try to find as investment account
+            var investmentAccount = await context.InvestmentAccounts
+                .Where(a => a.Id == id)
+                .Include(a => a.AccountType)
+                .Include(a => a.Currency)
+                .Include(a => a.AccountPeriods)
+                .Select(a => new InvestmentAccountDto
+                {
+                    Id = a.Id,
+                    Name = a.Name,
+                    Institution = a.Institution,
+                    AccountTypeName = a.AccountType != null ? a.AccountType.Type : string.Empty,
+                    CurrencySymbol = a.Currency != null ? a.Currency.Symbol : string.Empty,
+                    CurrencyDisplaySymbol = a.Currency != null ? a.Currency.DisplaySymbol : string.Empty,
+                    IsActive = a.IsActive,
+                    AccountKind = "Investment",
+                    BrokerAccountNumber = a.BrokerAccountNumber,
+                    IsTaxAdvantaged = a.IsTaxAdvantaged,
+                    TaxAdvantageType = a.TaxAdvantageType,
+                    CurrentBalance = a.AccountPeriods
+                        .Where(ap => ap.PeriodCloseDate == null)
+                        .Select(ap => ap.OpeningBalance +
+                            ap.Transactions.OfType<InvestmentTransaction>().Sum(t => t.Quantity * t.Price))
+                        .FirstOrDefault()
+                })
                 .FirstOrDefaultAsync();
 
-            if (currentPeriodWithTransactions == null)
+            if (investmentAccount != null)
             {
-                // Account exists, but no current open period found
-                return Results.Ok(new List<Transaction>());
+                return Results.Ok(investmentAccount);
             }
 
-            return Results.Ok(currentPeriodWithTransactions.Transactions.ToList());
+            return Results.NotFound($"Account with ID {id} not found.");
+        })
+        .WithName("GetAccountById")
+        .WithDescription("Gets an account by its ID, including calculated current balance.")
+        .Produces<AccountBaseDto>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status404NotFound);
+
+        // Get account transactions
+        accountEndpoints.MapGet("/{id}/transactions", async (FinanceTackerDbContext context, int id) =>
+        {
+            // Check if it's a cash account
+            var cashAccountExists = await context.CashAccounts.AnyAsync(a => a.Id == id);
+            if (cashAccountExists)
+            {
+                var cashTransactions = await context.CashTransactions
+                    .Include(t => t.AccountPeriod)
+                    .Include(t => t.TransactionType)
+                    .Include(t => t.Category)
+                    .Include(t => t.TransferToCashAccount)
+                    .Where(t => t.AccountPeriod.AccountId == id && t.AccountPeriod.PeriodCloseDate == null)
+                    .Select(t => new CashTransactionDto
+                    {
+                        Id = t.Id,
+                        AccountId = t.AccountPeriod.AccountId,
+                        TransactionDate = t.TransactionDate,
+                        Description = t.Description,
+                        TransactionTypeName = t.TransactionType.Type,
+                        CategoryName = t.Category.Category,
+                        TransactionKind = "Cash",
+                        Amount = t.Amount,
+                        TransferToCashAccountId = t.TransferToCashAccountId,
+                        TransferToCashAccountName = t.TransferToCashAccount != null ? t.TransferToCashAccount.Name : null
+                    })
+                    .ToListAsync();
+
+                return Results.Ok(cashTransactions);
+            }
+
+            // Check if it's an investment account
+            var investmentAccountExists = await context.InvestmentAccounts.AnyAsync(a => a.Id == id);
+            if (investmentAccountExists)
+            {
+                var investmentTransactions = await context.InvestmentTransactions
+                    .Include(t => t.AccountPeriod)
+                    .Include(t => t.TransactionType)
+                    .Include(t => t.Category)
+                    .Include(t => t.Security)
+                        .ThenInclude(s => s.Currency)
+                    .Where(t => t.AccountPeriod.AccountId == id && t.AccountPeriod.PeriodCloseDate == null)
+                    .Select(t => new InvestmentTransactionDto
+                    {
+                        Id = t.Id,
+                        AccountId = t.AccountPeriod.AccountId,
+                        TransactionDate = t.TransactionDate,
+                        Description = t.Description,
+                        TransactionTypeName = t.TransactionType.Type,
+                        CategoryName = t.Category.Category,
+                        TransactionKind = "Investment",
+                        Quantity = t.Quantity,
+                        Price = t.Price,
+                        Fees = t.Fees,
+                        Commission = t.Commission,
+                        OrderType = t.OrderType,
+                        SecurityId = t.SecurityId,
+                        SecuritySymbol = t.Security.Symbol,
+                        SecurityName = t.Security.Name,
+                        SecurityIsin = t.Security.ISIN,
+                        SecurityTypeName = t.Security.SecurityType,
+                        SecurityCurrencySymbol = t.Security.Currency.Symbol
+                    })
+                    .ToListAsync();
+
+                return Results.Ok(investmentTransactions);
+            }
+
+            return Results.NotFound($"Account with ID {id} not found");
         })
         .WithName("GetAccountTransactions")
         .WithDescription("Gets all transactions for the current open account period of a specific account.")
-        .Produces<List<Transaction>>(StatusCodes.Status200OK)
+        .Produces<List<TransactionBaseDto>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status404NotFound);
 
+        // Get recurring transactions (only for cash accounts)
         accountEndpoints.MapGet("/{id}/recurringTransactions", async (FinanceTackerDbContext context, int id) =>
         {
-            var accountExists = await context.Accounts.AnyAsync(a => a.Id == id);
+            var accountExists = await context.CashAccounts.AnyAsync(a => a.Id == id);
             if (!accountExists)
-                return Results.NotFound($"Account with ID {id} not found");
+                return Results.NotFound($"Cash account with ID {id} not found");
 
-            var recurringTransactions = await context.RecurringTransactions.Where(t => t.AccountId == id).ToListAsync();
+            var recurringTransactions = await context.RecurringTransactions
+                .Where(t => t.CashAccountId == id)
+                .ToListAsync();
             return Results.Ok(recurringTransactions);
         })
         .WithName("GetAccountRecurringTransactions")
-        .WithDescription("Gets all recurring transactions for a specific account")
+        .WithDescription("Gets all recurring transactions for a specific cash account")
         .Produces<List<RecurringTransaction>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status404NotFound);
-
-        accountEndpoints.MapPost("/", async (FinanceTackerDbContext context, Account account) =>
-        {
-            if (account == null) return Results.BadRequest("Account data is required");
-
-            var validationResults = new List<ValidationResult>();
-            if (!Validator.TryValidateObject(account, new ValidationContext(account), validationResults, true))
-            {
-                return Results.BadRequest(validationResults);
-            }
-
-            context.Accounts.Add(account);
-            await context.SaveChangesAsync();
-            return Results.Created($"/api/v1/accounts/{account.Id}", account);
-        })
-        .WithName("CreateAccount")
-        .WithDescription("Creates a new account")
-        .Produces<Account>(StatusCodes.Status201Created)
-        .ProducesProblem(StatusCodes.Status400BadRequest);
     }
 }

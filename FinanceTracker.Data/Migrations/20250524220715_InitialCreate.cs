@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace FinanceTracker.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialBaseline : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -75,6 +75,7 @@ namespace FinanceTracker.Data.Migrations
                     Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     AccountTypeId = table.Column<int>(type: "int", nullable: false),
                     CurrencyId = table.Column<int>(type: "int", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
                     Institution = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
@@ -161,42 +162,40 @@ namespace FinanceTracker.Data.Migrations
                         column: x => x.AccountId,
                         principalTable: "Account",
                         principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "RecurringTransaction",
+                }); migrationBuilder.CreateTable(
+                name: "CashAccount",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    StartDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    EndDate = table.Column<DateOnly>(type: "date", nullable: true),
-                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    AmountVariancePercentage = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    RecurrenceCronExpression = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    AccountId = table.Column<int>(type: "int", nullable: false),
-                    TransactionTypeId = table.Column<int>(type: "int", nullable: false),
-                    CategoryId = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false),
+                    OverdraftLimit = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RecurringTransaction", x => x.Id);
+                    table.PrimaryKey("PK_CashAccount", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_RecurringTransaction_ToAccount",
-                        column: x => x.AccountId,
+                        name: "FK_CashAccount_Account_Id",
+                        column: x => x.Id,
                         principalTable: "Account",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                }); migrationBuilder.CreateTable(
+                name: "InvestmentAccount",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false),
+                    BrokerAccountNumber = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    IsTaxAdvantaged = table.Column<bool>(type: "bit", nullable: false),
+                    TaxAdvantageType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_InvestmentAccount", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_RecurringTransaction_ToTransactionCategory",
-                        column: x => x.CategoryId,
-                        principalTable: "TransactionCategory",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_RecurringTransaction_ToTransactionType",
-                        column: x => x.TransactionTypeId,
-                        principalTable: "TransactionType",
-                        principalColumn: "Id");
+                        name: "FK_InvestmentAccount_Account_Id",
+                        column: x => x.Id,
+                        principalTable: "Account",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -226,23 +225,16 @@ namespace FinanceTracker.Data.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     TransactionDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     TransactionTypeId = table.Column<int>(type: "int", nullable: false),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
-                    AccountPeriodId = table.Column<int>(type: "int", nullable: false),
-                    AccountId = table.Column<int>(type: "int", nullable: true)
+                    AccountPeriodId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Transaction", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Transaction_Account_AccountId",
-                        column: x => x.AccountId,
-                        principalTable: "Account",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Transaction_ToAccount",
+                        name: "FK_Transaction_ToAccountPeriod",
                         column: x => x.AccountPeriodId,
                         principalTable: "AccountPeriod",
                         principalColumn: "Id");
@@ -259,12 +251,111 @@ namespace FinanceTracker.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "RecurringTransaction",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    StartDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    EndDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    AmountVariancePercentage = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    RecurrenceCronExpression = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    CashAccountId = table.Column<int>(type: "int", nullable: false),
+                    TransactionTypeId = table.Column<int>(type: "int", nullable: false),
+                    CategoryId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RecurringTransaction", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RecurringTransaction_ToCashAccount",
+                        column: x => x.CashAccountId,
+                        principalTable: "CashAccount",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_RecurringTransaction_ToTransactionCategory",
+                        column: x => x.CategoryId,
+                        principalTable: "TransactionCategory",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_RecurringTransaction_ToTransactionType",
+                        column: x => x.TransactionTypeId,
+                        principalTable: "TransactionType",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CashTransaction",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TransferToCashAccountId = table.Column<int>(type: "int", nullable: true),
+                    CashAccountId = table.Column<int>(type: "int", nullable: true)
+                }, constraints: table =>
+                {
+                    table.PrimaryKey("PK_CashTransaction", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CashTransaction_CashAccount_CashAccountId",
+                        column: x => x.CashAccountId,
+                        principalTable: "CashAccount",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_CashTransaction_ToTransferAccount",
+                        column: x => x.TransferToCashAccountId,
+                        principalTable: "CashAccount",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_CashTransaction_Transaction_Id",
+                        column: x => x.Id,
+                        principalTable: "Transaction",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "InvestmentTransaction",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<decimal>(type: "decimal(18,6)", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,6)", nullable: false),
+                    Fees = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Commission = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    OrderType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    SecurityId = table.Column<int>(type: "int", nullable: false),
+                    InvestmentAccountId = table.Column<int>(type: "int", nullable: true)
+                }, constraints: table =>
+                {
+                    table.PrimaryKey("PK_InvestmentTransaction", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_InvestmentTransaction_InvestmentAccount_InvestmentAccountId",
+                        column: x => x.InvestmentAccountId,
+                        principalTable: "InvestmentAccount",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_InvestmentTransaction_ToSecurity",
+                        column: x => x.SecurityId,
+                        principalTable: "Security",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_InvestmentTransaction_Transaction_Id",
+                        column: x => x.Id,
+                        principalTable: "Transaction",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TransactionSplit",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    TransactionId = table.Column<int>(type: "int", nullable: false),
+                    CashTransactionId = table.Column<int>(type: "int", nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CategoryId = table.Column<int>(type: "int", nullable: false)
@@ -273,9 +364,9 @@ namespace FinanceTracker.Data.Migrations
                 {
                     table.PrimaryKey("PK_TransactionSplit", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_TransactionSplit_ToTransaction",
-                        column: x => x.TransactionId,
-                        principalTable: "Transaction",
+                        name: "FK_TransactionSplit_ToCashTransaction",
+                        column: x => x.CashTransactionId,
+                        principalTable: "CashTransaction",
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_TransactionSplit_ToTransactionCategory",
@@ -306,6 +397,16 @@ namespace FinanceTracker.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_CashTransaction_CashAccountId",
+                table: "CashTransaction",
+                column: "CashAccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CashTransaction_TransferToCashAccountId",
+                table: "CashTransaction",
+                column: "TransferToCashAccountId");
+
+            migrationBuilder.CreateIndex(
                 name: "UX_Currency_Symbol",
                 table: "Currency",
                 column: "Symbol",
@@ -323,15 +424,25 @@ namespace FinanceTracker.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_InvestmentTransaction_InvestmentAccountId",
+                table: "InvestmentTransaction",
+                column: "InvestmentAccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InvestmentTransaction_SecurityId",
+                table: "InvestmentTransaction",
+                column: "SecurityId");
+
+            migrationBuilder.CreateIndex(
                 name: "UX_Price_SecurityId_Date",
                 table: "Price",
                 columns: new[] { "SecurityId", "Date" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_RecurringTransaction_AccountId",
+                name: "IX_RecurringTransaction_CashAccountId",
                 table: "RecurringTransaction",
-                column: "AccountId");
+                column: "CashAccountId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RecurringTransaction_CategoryId",
@@ -360,11 +471,6 @@ namespace FinanceTracker.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Transaction_AccountId",
-                table: "Transaction",
-                column: "AccountId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Transaction_AccountPeriodId",
                 table: "Transaction",
                 column: "AccountPeriodId");
@@ -386,14 +492,14 @@ namespace FinanceTracker.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_TransactionSplit_CashTransactionId",
+                table: "TransactionSplit",
+                column: "CashTransactionId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TransactionSplit_CategoryId",
                 table: "TransactionSplit",
                 column: "CategoryId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TransactionSplit_TransactionId",
-                table: "TransactionSplit",
-                column: "TransactionId");
 
             migrationBuilder.CreateIndex(
                 name: "UX_TransactionType_Type",
@@ -409,6 +515,9 @@ namespace FinanceTracker.Data.Migrations
                 name: "FxRate");
 
             migrationBuilder.DropTable(
+                name: "InvestmentTransaction");
+
+            migrationBuilder.DropTable(
                 name: "Price");
 
             migrationBuilder.DropTable(
@@ -418,7 +527,16 @@ namespace FinanceTracker.Data.Migrations
                 name: "TransactionSplit");
 
             migrationBuilder.DropTable(
+                name: "InvestmentAccount");
+
+            migrationBuilder.DropTable(
                 name: "Security");
+
+            migrationBuilder.DropTable(
+                name: "CashTransaction");
+
+            migrationBuilder.DropTable(
+                name: "CashAccount");
 
             migrationBuilder.DropTable(
                 name: "Transaction");

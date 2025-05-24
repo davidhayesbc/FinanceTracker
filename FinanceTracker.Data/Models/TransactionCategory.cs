@@ -8,13 +8,7 @@ public partial class TransactionCategory
 
     public string Description { get; set; } = null!;
 
-    public virtual ICollection<TransactionSplit> TransactionSplits { get; set; } = new List<TransactionSplit>();
-
-    public virtual ICollection<TransactionBase> Transactions { get; set; } = new List<TransactionBase>();
-
-    public virtual ICollection<CashTransaction> CashTransactions { get; set; } = new List<CashTransaction>();
-
-    public virtual ICollection<InvestmentTransaction> InvestmentTransactions { get; set; } = new List<InvestmentTransaction>();
+    public virtual ICollection<TransactionSplit> TransactionSplits { get; set; } = new List<TransactionSplit>(); public virtual ICollection<TransactionBase> Transactions { get; set; } = new List<TransactionBase>();
 
     public virtual ICollection<RecurringTransaction> RecurringTransactions { get; set; } = new List<RecurringTransaction>();
 

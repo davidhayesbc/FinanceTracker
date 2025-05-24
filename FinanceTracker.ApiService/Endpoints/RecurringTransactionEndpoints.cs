@@ -36,10 +36,10 @@ public static class RecurringTransactionEndpoints
                 return Results.BadRequest(validationResults);
             }
 
-            // Validate that the account exists
-            if (!await context.Accounts.AnyAsync(a => a.Id == recurringTransaction.AccountId))
+            // Validate that the cash account exists
+            if (!await context.CashAccounts.AnyAsync(a => a.Id == recurringTransaction.CashAccountId))
             {
-                return Results.BadRequest($"Account with ID {recurringTransaction.AccountId} does not exist");
+                return Results.BadRequest($"Cash account with ID {recurringTransaction.CashAccountId} does not exist");
             }
 
             context.RecurringTransactions.Add(recurringTransaction);

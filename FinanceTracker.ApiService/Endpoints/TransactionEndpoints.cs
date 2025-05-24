@@ -19,167 +19,129 @@ public static class TransactionEndpoints
             .WithTags("Transactions")
             .WithGroupName("Transactions");
 
-        transactionEndpoints.MapGet("/", async (FinanceTackerDbContext context) =>
+        // Cash Transaction Endpoints
+        transactionEndpoints.MapGet("/cash", async (FinanceTackerDbContext context) =>
         {
-            var transactions = await context.Transactions
-                .Include(t => t.Security)
-                    .ThenInclude(s => s!.Currency)
+            var cashTransactions = await context.CashTransactions
                 .Include(t => t.TransactionType)
                 .Include(t => t.AccountPeriod)
-                .Select(t => new TransactionDto
+                .Select(t => new CashTransactionDto
                 {
                     Id = t.Id,
-                    AccountId = t.AccountPeriod.AccountId,
                     TransactionDate = t.TransactionDate,
                     Description = t.Description,
-                    Quantity = t.Quantity,
-                    OriginalCost = t.OriginalCost,
-                    SecurityId = t.SecurityId,
-                    SecuritySymbol = t.Security != null ? t.Security.Symbol : null,
-                    SecurityName = t.Security != null ? t.Security.Name : null,
-                    SecurityIsin = t.Security != null ? t.Security.ISIN : null,
-                    SecurityTypeName = t.Security != null ? t.Security.SecurityType : null,
-                    SecurityCurrencySymbol = t.Security != null && t.Security.Currency != null ? t.Security.Currency.Symbol : null,
+                    Amount = t.Amount,
+                    TransferToCashAccountId = t.TransferToCashAccountId,
+                    TransactionTypeId = t.TransactionTypeId,
                     TransactionTypeName = t.TransactionType.Type,
+                    AccountPeriodId = t.AccountPeriodId
                 })
                 .ToListAsync();
-            return Results.Ok(transactions);
+            return Results.Ok(cashTransactions);
         })
-        .WithName("GetAllTransactions")
-        .WithDescription("Gets all transactions with flattened security and type information.")
-        .Produces<List<TransactionDto>>(StatusCodes.Status200OK);
+        .WithName("GetAllCashTransactions")
+        .WithDescription("Gets all cash transactions.")
+        .Produces<List<CashTransactionDto>>(StatusCodes.Status200OK);
 
-        transactionEndpoints.MapGet("/{id}", async (FinanceTackerDbContext context, int id) =>
+        // Investment Transaction Endpoints
+        transactionEndpoints.MapGet("/investment", async (FinanceTackerDbContext context) =>
         {
-            var transaction = await context.Transactions
-                .Where(t => t.Id == id)
+            var investmentTransactions = await context.InvestmentTransactions
                 .Include(t => t.Security)
-                    .ThenInclude(s => s!.Currency)
+                    .ThenInclude(s => s.Currency)
                 .Include(t => t.TransactionType)
                 .Include(t => t.AccountPeriod)
-                .Select(t => new TransactionDto
+                .Select(t => new InvestmentTransactionDto
                 {
                     Id = t.Id,
-                    AccountId = t.AccountPeriod.AccountId,
                     TransactionDate = t.TransactionDate,
                     Description = t.Description,
                     Quantity = t.Quantity,
-                    OriginalCost = t.OriginalCost,
+                    Price = t.Price,
+                    Fees = t.Fees,
+                    Commission = t.Commission,
+                    OrderType = t.OrderType,
                     SecurityId = t.SecurityId,
-                    SecuritySymbol = t.Security != null ? t.Security.Symbol : null,
-                    SecurityName = t.Security != null ? t.Security.Name : null,
-                    SecurityIsin = t.Security != null ? t.Security.ISIN : null,
-                    SecurityTypeName = t.Security != null ? t.Security.SecurityType : null,
-                    SecurityCurrencySymbol = t.Security != null && t.Security.Currency != null ? t.Security.Currency.Symbol : null,
+                    SecuritySymbol = t.Security.Symbol,
+                    SecurityName = t.Security.Name,
+                    SecurityIsin = t.Security.ISIN,
+                    SecurityTypeName = t.Security.SecurityType,
+                    SecurityCurrencySymbol = t.Security.Currency.Symbol,
+                    TransactionTypeId = t.TransactionTypeId,
                     TransactionTypeName = t.TransactionType.Type,
+                    AccountPeriodId = t.AccountPeriodId
                 })
-                .FirstOrDefaultAsync();
-
-            if (transaction == null)
-            {
-                return Results.NotFound($"Transaction with ID {id} not found.");
-            }
-            return Results.Ok(transaction);
+                .ToListAsync();
+            return Results.Ok(investmentTransactions);
         })
-        .WithName("GetTransactionById")
-        .WithDescription("Gets a transaction by its ID with flattened security and type information.")
-        .Produces<TransactionDto>(StatusCodes.Status200OK)
-        .ProducesProblem(StatusCodes.Status404NotFound);
+        .WithName("GetAllInvestmentTransactions")
+        .WithDescription("Gets all investment transactions.")
+        .Produces<List<InvestmentTransactionDto>>(StatusCodes.Status200OK);
 
-        transactionEndpoints.MapGet("/{id}/transactionSplits", async (FinanceTackerDbContext context, int id) =>
+        // Create Cash Transaction
+        transactionEndpoints.MapPost("/cash", async (FinanceTackerDbContext context, CreateCashTransactionRequestDto cashTransactionDto) =>
         {
-            var transactionExists = await context.Transactions.AnyAsync(t => t.Id == id);
-            if (!transactionExists)
-                return Results.NotFound($"Transaction with ID {id} not found");
-
-            var transactionSplits = await context.TransactionSplits.Where(t => t.TransactionId == id).ToListAsync();
-            return Results.Ok(transactionSplits);
-        })
-        .WithName("GetTransactionSplits")
-        .WithDescription("Gets all splits for a specific transaction")
-        .Produces<List<TransactionSplit>>(StatusCodes.Status200OK)
-        .ProducesProblem(StatusCodes.Status404NotFound);
-
-        transactionEndpoints.MapPost("/", async (FinanceTackerDbContext context, CreateTransactionRequestDto transactionDto) =>
-        {
-            if (transactionDto == null) return Results.BadRequest("Transaction data is required");
+            if (cashTransactionDto == null) return Results.BadRequest("Cash transaction data is required");
 
             var validationResults = new List<ValidationResult>();
-            if (!Validator.TryValidateObject(transactionDto, new ValidationContext(transactionDto), validationResults, true))
+            if (!Validator.TryValidateObject(cashTransactionDto, new ValidationContext(cashTransactionDto), validationResults, true))
             {
                 return Results.BadRequest(validationResults);
             }
 
-            // Validate that the account exists by checking AccountPeriod's AccountId
-            var accountPeriod = await context.AccountPeriods.FindAsync(transactionDto.AccountPeriodId);
-            if (accountPeriod == null || !await context.Accounts.AnyAsync(a => a.Id == accountPeriod.AccountId))
+            // Create the cash transaction
+            var cashTransaction = new CashTransaction
             {
-                return Results.BadRequest($"Account with ID {accountPeriod?.AccountId} associated with AccountPeriodId {transactionDto.AccountPeriodId} does not exist or AccountPeriodId is invalid.");
-            }
-
-            // Validate SecurityId
-            if (!await context.Securities.AnyAsync(s => s.Id == transactionDto.SecurityId))
-            {
-                return Results.BadRequest($"Security with ID {transactionDto.SecurityId} does not exist.");
-            }
-
-            // Validate TransactionTypeId
-            if (!await context.TransactionTypes.AnyAsync(tt => tt.Id == transactionDto.TransactionTypeId))
-            {
-                return Results.BadRequest($"TransactionType with ID {transactionDto.TransactionTypeId} does not exist.");
-            }
-
-            // Validate CategoryId
-            if (!await context.TransactionCategories.AnyAsync(tc => tc.Id == transactionDto.CategoryId))
-            {
-                return Results.BadRequest($"TransactionCategory with ID {transactionDto.CategoryId} does not exist.");
-            }
-
-            var transaction = new Transaction
-            {
-                TransactionDate = transactionDto.TransactionDate,
-                Quantity = transactionDto.Quantity,
-                OriginalCost = transactionDto.OriginalCost,
-                Description = transactionDto.Description,
-                TransactionTypeId = transactionDto.TransactionTypeId,
-                CategoryId = transactionDto.CategoryId,
-                AccountPeriodId = transactionDto.AccountPeriodId,
-                SecurityId = transactionDto.SecurityId
+                TransactionDate = cashTransactionDto.TransactionDate,
+                Description = cashTransactionDto.Description,
+                Amount = cashTransactionDto.Amount,
+                TransferToCashAccountId = cashTransactionDto.TransferToCashAccountId,
+                TransactionTypeId = cashTransactionDto.TransactionTypeId,
+                AccountPeriodId = cashTransactionDto.AccountPeriodId
             };
 
-            context.Transactions.Add(transaction);
+            context.CashTransactions.Add(cashTransaction);
             await context.SaveChangesAsync();
-
-            // Map to TransactionDto for the response
-            var createdTransactionDto = await context.Transactions
-                .Where(t => t.Id == transaction.Id)
-                .Include(t => t.Security)
-                    .ThenInclude(s => s!.Currency)
-                .Include(t => t.TransactionType)
-                .Include(t => t.AccountPeriod)
-                .Select(t => new TransactionDto
-                {
-                    Id = t.Id,
-                    AccountId = t.AccountPeriod.AccountId,
-                    TransactionDate = t.TransactionDate,
-                    Description = t.Description,
-                    Quantity = t.Quantity,
-                    OriginalCost = t.OriginalCost,
-                    SecurityId = t.SecurityId,
-                    SecuritySymbol = t.Security != null ? t.Security.Symbol : null,
-                    SecurityName = t.Security != null ? t.Security.Name : null,
-                    SecurityIsin = t.Security != null ? t.Security.ISIN : null,
-                    SecurityTypeName = t.Security != null ? t.Security.SecurityType : null,
-                    SecurityCurrencySymbol = t.Security != null && t.Security.Currency != null ? t.Security.Currency.Symbol : null,
-                    TransactionTypeName = t.TransactionType.Type,
-                })
-                .FirstOrDefaultAsync();
-
-            return Results.Created($"/api/v1/transactions/{transaction.Id}", createdTransactionDto);
+            return Results.Created($"/api/v1/transactions/cash/{cashTransaction.Id}", cashTransaction);
         })
-        .WithName("CreateTransaction")
-        .WithDescription("Creates a new transaction")
-        .Produces<TransactionDto>(StatusCodes.Status201Created)
+        .WithName("CreateCashTransaction")
+        .WithDescription("Creates a new cash transaction")
+        .Produces<CashTransaction>(StatusCodes.Status201Created)
+        .ProducesProblem(StatusCodes.Status400BadRequest);
+
+        // Create Investment Transaction
+        transactionEndpoints.MapPost("/investment", async (FinanceTackerDbContext context, CreateInvestmentTransactionRequestDto investmentTransactionDto) =>
+        {
+            if (investmentTransactionDto == null) return Results.BadRequest("Investment transaction data is required");
+
+            var validationResults = new List<ValidationResult>();
+            if (!Validator.TryValidateObject(investmentTransactionDto, new ValidationContext(investmentTransactionDto), validationResults, true))
+            {
+                return Results.BadRequest(validationResults);
+            }
+
+            // Create the investment transaction
+            var investmentTransaction = new InvestmentTransaction
+            {
+                TransactionDate = investmentTransactionDto.TransactionDate,
+                Description = investmentTransactionDto.Description,
+                Quantity = investmentTransactionDto.Quantity,
+                Price = investmentTransactionDto.Price,
+                Fees = investmentTransactionDto.Fees,
+                Commission = investmentTransactionDto.Commission,
+                OrderType = investmentTransactionDto.OrderType,
+                SecurityId = investmentTransactionDto.SecurityId,
+                TransactionTypeId = investmentTransactionDto.TransactionTypeId,
+                AccountPeriodId = investmentTransactionDto.AccountPeriodId
+            };
+
+            context.InvestmentTransactions.Add(investmentTransaction);
+            await context.SaveChangesAsync();
+            return Results.Created($"/api/v1/transactions/investment/{investmentTransaction.Id}", investmentTransaction);
+        })
+        .WithName("CreateInvestmentTransaction")
+        .WithDescription("Creates a new investment transaction")
+        .Produces<InvestmentTransaction>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest);
     }
 }

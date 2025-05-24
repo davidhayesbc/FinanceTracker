@@ -22,7 +22,7 @@ namespace FinanceTracker.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("FinanceTracker.Data.Models.Account", b =>
+            modelBuilder.Entity("FinanceTracker.Data.Models.AccountBase", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -41,6 +41,9 @@ namespace FinanceTracker.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -54,6 +57,8 @@ namespace FinanceTracker.Data.Migrations
                     b.HasIndex("CurrencyId");
 
                     b.ToTable("Account", (string)null);
+
+                    b.UseTptMappingStrategy();
                 });
 
             modelBuilder.Entity("FinanceTracker.Data.Models.AccountPeriod", b =>
@@ -216,14 +221,14 @@ namespace FinanceTracker.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AccountId")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18, 2)");
 
                     b.Property<decimal>("AmountVariancePercentage")
                         .HasColumnType("decimal(18, 2)");
+
+                    b.Property<int>("CashAccountId")
+                        .HasColumnType("int");
 
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
@@ -250,7 +255,7 @@ namespace FinanceTracker.Data.Migrations
                     b.HasKey("Id")
                         .HasName("PK_RecurringTransaction");
 
-                    b.HasIndex("AccountId");
+                    b.HasIndex("CashAccountId");
 
                     b.HasIndex("CategoryId");
 
@@ -304,16 +309,13 @@ namespace FinanceTracker.Data.Migrations
                     b.ToTable("Security", (string)null);
                 });
 
-            modelBuilder.Entity("FinanceTracker.Data.Models.Transaction", b =>
+            modelBuilder.Entity("FinanceTracker.Data.Models.TransactionBase", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("AccountId")
-                        .HasColumnType("int");
 
                     b.Property<int>("AccountPeriodId")
                         .HasColumnType("int");
@@ -326,15 +328,6 @@ namespace FinanceTracker.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<decimal>("OriginalCost")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Quantity")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<int>("SecurityId")
-                        .HasColumnType("int");
-
                     b.Property<DateOnly>("TransactionDate")
                         .HasColumnType("date");
 
@@ -344,17 +337,15 @@ namespace FinanceTracker.Data.Migrations
                     b.HasKey("Id")
                         .HasName("PK_Transaction");
 
-                    b.HasIndex("AccountId");
-
                     b.HasIndex("AccountPeriodId");
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("SecurityId");
-
                     b.HasIndex("TransactionTypeId");
 
                     b.ToTable("Transaction", (string)null);
+
+                    b.UseTptMappingStrategy();
                 });
 
             modelBuilder.Entity("FinanceTracker.Data.Models.TransactionCategory", b =>
@@ -396,6 +387,9 @@ namespace FinanceTracker.Data.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18, 2)");
 
+                    b.Property<int>("CashTransactionId")
+                        .HasColumnType("int");
+
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
@@ -404,15 +398,12 @@ namespace FinanceTracker.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int>("TransactionId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id")
                         .HasName("PK_TransactionSplit");
 
-                    b.HasIndex("CategoryId");
+                    b.HasIndex("CashTransactionId");
 
-                    b.HasIndex("TransactionId");
+                    b.HasIndex("CategoryId");
 
                     b.ToTable("TransactionSplit", (string)null);
                 });
@@ -440,7 +431,88 @@ namespace FinanceTracker.Data.Migrations
                     b.ToTable("TransactionType", (string)null);
                 });
 
-            modelBuilder.Entity("FinanceTracker.Data.Models.Account", b =>
+            modelBuilder.Entity("FinanceTracker.Data.Models.CashAccount", b =>
+                {
+                    b.HasBaseType("FinanceTracker.Data.Models.AccountBase");
+
+                    b.Property<decimal?>("OverdraftLimit")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.ToTable("CashAccount", (string)null);
+                });
+
+            modelBuilder.Entity("FinanceTracker.Data.Models.InvestmentAccount", b =>
+                {
+                    b.HasBaseType("FinanceTracker.Data.Models.AccountBase");
+
+                    b.Property<string>("BrokerAccountNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsTaxAdvantaged")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("TaxAdvantageType")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.ToTable("InvestmentAccount", (string)null);
+                });
+
+            modelBuilder.Entity("FinanceTracker.Data.Models.CashTransaction", b =>
+                {
+                    b.HasBaseType("FinanceTracker.Data.Models.TransactionBase");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<int?>("CashAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TransferToCashAccountId")
+                        .HasColumnType("int");
+
+                    b.HasIndex("CashAccountId");
+
+                    b.HasIndex("TransferToCashAccountId");
+
+                    b.ToTable("CashTransaction", (string)null);
+                });
+
+            modelBuilder.Entity("FinanceTracker.Data.Models.InvestmentTransaction", b =>
+                {
+                    b.HasBaseType("FinanceTracker.Data.Models.TransactionBase");
+
+                    b.Property<decimal?>("Commission")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal?>("Fees")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<int?>("InvestmentAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OrderType")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18, 6)");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("decimal(18, 6)");
+
+                    b.Property<int>("SecurityId")
+                        .HasColumnType("int");
+
+                    b.HasIndex("InvestmentAccountId");
+
+                    b.HasIndex("SecurityId");
+
+                    b.ToTable("InvestmentTransaction", (string)null);
+                });
+
+            modelBuilder.Entity("FinanceTracker.Data.Models.AccountBase", b =>
                 {
                     b.HasOne("FinanceTracker.Data.Models.AccountType", "AccountType")
                         .WithMany("Accounts")
@@ -461,7 +533,7 @@ namespace FinanceTracker.Data.Migrations
 
             modelBuilder.Entity("FinanceTracker.Data.Models.AccountPeriod", b =>
                 {
-                    b.HasOne("FinanceTracker.Data.Models.Account", "Account")
+                    b.HasOne("FinanceTracker.Data.Models.AccountBase", "Account")
                         .WithMany("AccountPeriods")
                         .HasForeignKey("AccountId")
                         .IsRequired()
@@ -502,11 +574,11 @@ namespace FinanceTracker.Data.Migrations
 
             modelBuilder.Entity("FinanceTracker.Data.Models.RecurringTransaction", b =>
                 {
-                    b.HasOne("FinanceTracker.Data.Models.Account", "Account")
+                    b.HasOne("FinanceTracker.Data.Models.CashAccount", "CashAccount")
                         .WithMany("RecurringTransactions")
-                        .HasForeignKey("AccountId")
+                        .HasForeignKey("CashAccountId")
                         .IsRequired()
-                        .HasConstraintName("FK_RecurringTransaction_ToAccount");
+                        .HasConstraintName("FK_RecurringTransaction_ToCashAccount");
 
                     b.HasOne("FinanceTracker.Data.Models.TransactionCategory", "Category")
                         .WithMany("RecurringTransactions")
@@ -520,7 +592,7 @@ namespace FinanceTracker.Data.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_RecurringTransaction_ToTransactionType");
 
-                    b.Navigation("Account");
+                    b.Navigation("CashAccount");
 
                     b.Navigation("Category");
 
@@ -538,29 +610,19 @@ namespace FinanceTracker.Data.Migrations
                     b.Navigation("Currency");
                 });
 
-            modelBuilder.Entity("FinanceTracker.Data.Models.Transaction", b =>
+            modelBuilder.Entity("FinanceTracker.Data.Models.TransactionBase", b =>
                 {
-                    b.HasOne("FinanceTracker.Data.Models.Account", null)
-                        .WithMany("Transactions")
-                        .HasForeignKey("AccountId");
-
                     b.HasOne("FinanceTracker.Data.Models.AccountPeriod", "AccountPeriod")
                         .WithMany("Transactions")
                         .HasForeignKey("AccountPeriodId")
                         .IsRequired()
-                        .HasConstraintName("FK_Transaction_ToAccount");
+                        .HasConstraintName("FK_Transaction_ToAccountPeriod");
 
                     b.HasOne("FinanceTracker.Data.Models.TransactionCategory", "Category")
                         .WithMany("Transactions")
                         .HasForeignKey("CategoryId")
                         .IsRequired()
                         .HasConstraintName("FK_Transaction_ToTransactionCategory");
-
-                    b.HasOne("FinanceTracker.Data.Models.Security", "Security")
-                        .WithMany()
-                        .HasForeignKey("SecurityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.HasOne("FinanceTracker.Data.Models.TransactionType", "TransactionType")
                         .WithMany("Transactions")
@@ -572,37 +634,91 @@ namespace FinanceTracker.Data.Migrations
 
                     b.Navigation("Category");
 
-                    b.Navigation("Security");
-
                     b.Navigation("TransactionType");
                 });
 
             modelBuilder.Entity("FinanceTracker.Data.Models.TransactionSplit", b =>
                 {
+                    b.HasOne("FinanceTracker.Data.Models.CashTransaction", "CashTransaction")
+                        .WithMany("TransactionSplits")
+                        .HasForeignKey("CashTransactionId")
+                        .IsRequired()
+                        .HasConstraintName("FK_TransactionSplit_ToCashTransaction");
+
                     b.HasOne("FinanceTracker.Data.Models.TransactionCategory", "Category")
                         .WithMany("TransactionSplits")
                         .HasForeignKey("CategoryId")
                         .IsRequired()
                         .HasConstraintName("FK_TransactionSplit_ToTransactionCategory");
 
-                    b.HasOne("FinanceTracker.Data.Models.Transaction", "Transaction")
-                        .WithMany("TransactionSplits")
-                        .HasForeignKey("TransactionId")
-                        .IsRequired()
-                        .HasConstraintName("FK_TransactionSplit_ToTransaction");
+                    b.Navigation("CashTransaction");
 
                     b.Navigation("Category");
-
-                    b.Navigation("Transaction");
                 });
 
-            modelBuilder.Entity("FinanceTracker.Data.Models.Account", b =>
+            modelBuilder.Entity("FinanceTracker.Data.Models.CashAccount", b =>
+                {
+                    b.HasOne("FinanceTracker.Data.Models.AccountBase", null)
+                        .WithOne()
+                        .HasForeignKey("FinanceTracker.Data.Models.CashAccount", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("FinanceTracker.Data.Models.InvestmentAccount", b =>
+                {
+                    b.HasOne("FinanceTracker.Data.Models.AccountBase", null)
+                        .WithOne()
+                        .HasForeignKey("FinanceTracker.Data.Models.InvestmentAccount", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("FinanceTracker.Data.Models.CashTransaction", b =>
+                {
+                    b.HasOne("FinanceTracker.Data.Models.CashAccount", null)
+                        .WithMany("CashTransactions")
+                        .HasForeignKey("CashAccountId");
+
+                    b.HasOne("FinanceTracker.Data.Models.TransactionBase", null)
+                        .WithOne()
+                        .HasForeignKey("FinanceTracker.Data.Models.CashTransaction", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FinanceTracker.Data.Models.CashAccount", "TransferToCashAccount")
+                        .WithMany()
+                        .HasForeignKey("TransferToCashAccountId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("FK_CashTransaction_ToTransferAccount");
+
+                    b.Navigation("TransferToCashAccount");
+                });
+
+            modelBuilder.Entity("FinanceTracker.Data.Models.InvestmentTransaction", b =>
+                {
+                    b.HasOne("FinanceTracker.Data.Models.TransactionBase", null)
+                        .WithOne()
+                        .HasForeignKey("FinanceTracker.Data.Models.InvestmentTransaction", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FinanceTracker.Data.Models.InvestmentAccount", null)
+                        .WithMany("InvestmentTransactions")
+                        .HasForeignKey("InvestmentAccountId");
+
+                    b.HasOne("FinanceTracker.Data.Models.Security", "Security")
+                        .WithMany("InvestmentTransactions")
+                        .HasForeignKey("SecurityId")
+                        .IsRequired()
+                        .HasConstraintName("FK_InvestmentTransaction_ToSecurity");
+
+                    b.Navigation("Security");
+                });
+
+            modelBuilder.Entity("FinanceTracker.Data.Models.AccountBase", b =>
                 {
                     b.Navigation("AccountPeriods");
-
-                    b.Navigation("RecurringTransactions");
-
-                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("FinanceTracker.Data.Models.AccountPeriod", b =>
@@ -628,12 +744,9 @@ namespace FinanceTracker.Data.Migrations
 
             modelBuilder.Entity("FinanceTracker.Data.Models.Security", b =>
                 {
-                    b.Navigation("Prices");
-                });
+                    b.Navigation("InvestmentTransactions");
 
-            modelBuilder.Entity("FinanceTracker.Data.Models.Transaction", b =>
-                {
-                    b.Navigation("TransactionSplits");
+                    b.Navigation("Prices");
                 });
 
             modelBuilder.Entity("FinanceTracker.Data.Models.TransactionCategory", b =>
@@ -650,6 +763,23 @@ namespace FinanceTracker.Data.Migrations
                     b.Navigation("RecurringTransactions");
 
                     b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("FinanceTracker.Data.Models.CashAccount", b =>
+                {
+                    b.Navigation("CashTransactions");
+
+                    b.Navigation("RecurringTransactions");
+                });
+
+            modelBuilder.Entity("FinanceTracker.Data.Models.InvestmentAccount", b =>
+                {
+                    b.Navigation("InvestmentTransactions");
+                });
+
+            modelBuilder.Entity("FinanceTracker.Data.Models.CashTransaction", b =>
+                {
+                    b.Navigation("TransactionSplits");
                 });
 #pragma warning restore 612, 618
         }

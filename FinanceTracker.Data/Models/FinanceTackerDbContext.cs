@@ -56,15 +56,11 @@ public partial class FinanceTackerDbContext : DbContext
             entity.HasOne(d => d.AccountType).WithMany(p => p.Accounts)
                 .HasForeignKey(d => d.AccountTypeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Account_ToAccountType");
-
-            entity.HasOne(d => d.Currency).WithMany(p => p.Accounts)
+                .HasConstraintName("FK_Account_ToAccountType"); entity.HasOne(d => d.Currency).WithMany(p => p.Accounts)
                 .HasForeignKey(d => d.CurrencyId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Account_ToCurrency");
-        });
-
-        modelBuilder.Entity<CashAccount>(entity =>
+        }); modelBuilder.Entity<CashAccount>(entity =>
         {
             entity.ToTable("CashAccount");
             entity.Property(e => e.OverdraftLimit).HasColumnType("decimal(18, 2)");
@@ -73,7 +69,8 @@ public partial class FinanceTackerDbContext : DbContext
         modelBuilder.Entity<InvestmentAccount>(entity =>
         {
             entity.ToTable("InvestmentAccount");
-            entity.Property(e => e.InvestmentAccountType).HasMaxLength(50);
+            entity.Property(e => e.BrokerAccountNumber).HasMaxLength(100);
+            entity.Property(e => e.TaxAdvantageType).HasMaxLength(50);
         });
 
         modelBuilder.Entity<AccountPeriod>(entity =>
@@ -137,6 +134,9 @@ public partial class FinanceTackerDbContext : DbContext
             entity.ToTable("InvestmentTransaction");
             entity.Property(e => e.Quantity).HasColumnType("decimal(18, 6)");
             entity.Property(e => e.Price).HasColumnType("decimal(18, 6)");
+            entity.Property(e => e.Fees).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Commission).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.OrderType).HasMaxLength(50);
 
             entity.HasOne(d => d.Security).WithMany(p => p.InvestmentTransactions)
                 .HasForeignKey(d => d.SecurityId)

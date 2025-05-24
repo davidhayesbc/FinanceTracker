@@ -15,12 +15,7 @@ public partial class AccountPeriod
     public DateOnly PeriodStart { get; set; }
     public DateOnly? PeriodEnd { get; set; } = null;
     public DateOnly? PeriodCloseDate { get; set; } = null; public virtual required AccountBase Account { get; set; }
-
     public virtual ICollection<TransactionBase> Transactions { get; set; } = new List<TransactionBase>();
-
-    public virtual ICollection<CashTransaction> CashTransactions { get; set; } = new List<CashTransaction>();
-
-    public virtual ICollection<InvestmentTransaction> InvestmentTransactions { get; set; } = new List<InvestmentTransaction>();
 
     //TODO: Figure out how to do a Mapping table in EF Core (for transactions)
 }

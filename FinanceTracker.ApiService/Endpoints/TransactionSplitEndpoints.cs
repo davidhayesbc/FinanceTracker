@@ -26,7 +26,7 @@ public static class TransactionSplitEndpoints
                 .Select(ts => new TransactionSplitDto
                 {
                     Id = ts.Id,
-                    TransactionId = ts.TransactionId,
+                    CashTransactionId = ts.CashTransactionId,
                     CategoryId = ts.CategoryId,
                     CategoryName = ts.Category.Category, // Changed from ts.Category.Name
                     Amount = ts.Amount
@@ -48,10 +48,10 @@ public static class TransactionSplitEndpoints
                 return Results.BadRequest(validationResults);
             }
 
-            // Validate that the transaction exists
-            if (!await context.Transactions.AnyAsync(t => t.Id == transactionSplitDto.TransactionId))
+            // Validate that the cash transaction exists
+            if (!await context.CashTransactions.AnyAsync(t => t.Id == transactionSplitDto.CashTransactionId))
             {
-                return Results.BadRequest($"Transaction with ID {transactionSplitDto.TransactionId} does not exist.");
+                return Results.BadRequest($"Cash transaction with ID {transactionSplitDto.CashTransactionId} does not exist.");
             }
 
             // Validate that the category exists
@@ -62,7 +62,7 @@ public static class TransactionSplitEndpoints
 
             var transactionSplit = new TransactionSplit
             {
-                TransactionId = transactionSplitDto.TransactionId,
+                CashTransactionId = transactionSplitDto.CashTransactionId,
                 CategoryId = transactionSplitDto.CategoryId,
                 Amount = transactionSplitDto.Amount
             };
@@ -74,7 +74,7 @@ public static class TransactionSplitEndpoints
             var createdSplitDto = new TransactionSplitDto
             {
                 Id = transactionSplit.Id,
-                TransactionId = transactionSplit.TransactionId,
+                CashTransactionId = transactionSplit.CashTransactionId,
                 CategoryId = transactionSplit.CategoryId,
                 CategoryName = (await context.TransactionCategories.FindAsync(transactionSplit.CategoryId))?.Category ?? string.Empty, // Changed from .Name
                 Amount = transactionSplit.Amount
