@@ -1,11 +1,17 @@
 {
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[csharp]": {
     "editor.defaultFormatter": "ms-dotnettools.csharp"
   },
-  "prettier.requireConfig": true,
-  "prettier.configPath": ".prettierrc.json",
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "[vue]": {
+    "editor.defaultFormatter": "Vue.volar"
+  },
   "files.eol": "\n",
   "github.copilot.chat.commitMessageGeneration.instructions": [
     {
@@ -13,6 +19,9 @@
     }
   ],
   "github.copilot.chat.codeGeneration.instructions": [
+    {
+      "file": "./docs/solution-structure.md"
+    },
     {
       "file": "./docs/javascript-styles.md"
     },
