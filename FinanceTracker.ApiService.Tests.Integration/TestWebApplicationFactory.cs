@@ -12,28 +12,33 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
     {
         builder.ConfigureServices(services =>
         {
-            // Remove the real database service
-            var descriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<FinanceTackerDbContext>));
-
-            if (descriptor != null)
-            {
-                services.Remove(descriptor);
-            }
-
-            // Add in-memory database
-            services.AddDbContext<FinanceTackerDbContext>(options =>
-            {
-                options.UseInMemoryDatabase("InMemoryDbForTesting");
-            });
-
-            // Build service provider to seed the database
-            var serviceProvider = services.BuildServiceProvider();
-            using var scope = serviceProvider.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<FinanceTackerDbContext>();
-
-            SeedDatabase(context);
+            ConfigureInMemoryDatabase(services);
         });
+    }
+
+    private static void ConfigureInMemoryDatabase(IServiceCollection services)
+    {
+        // Remove the real database service
+        var descriptor = services.SingleOrDefault(
+            d => d.ServiceType == typeof(DbContextOptions<FinanceTackerDbContext>));
+
+        if (descriptor != null)
+        {
+            services.Remove(descriptor);
+        }
+
+        // Add in-memory database
+        services.AddDbContext<FinanceTackerDbContext>(options =>
+        {
+            options.UseInMemoryDatabase("InMemoryDbForTesting");
+        });
+
+        // Build service provider to seed the database
+        var serviceProvider = services.BuildServiceProvider();
+        using var scope = serviceProvider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<FinanceTackerDbContext>();
+
+        SeedDatabase(context);
     }
 
     private static void SeedDatabase(FinanceTackerDbContext context)
