@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = Host.CreateApplicationBuilder(args);
         builder.AddServiceDefaults();
@@ -15,14 +15,13 @@ public class Program
 
         // Configure OpenTelemetry
         builder.Services.AddOpenTelemetry()
-            .WithTracing(tracing => tracing.AddSource(Worker.ActivitySourceName))
-            .WithLogging();
+            .WithTracing(tracing => tracing.AddSource(Worker.ActivitySourceName));
 
         // Add SQL Server DbContext
         builder.Services.AddDbContext<FinanceTackerDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("FinanceTracker")));
 
         var host = builder.Build();
-        host.Run();
+        await host.RunAsync();
     }
 }

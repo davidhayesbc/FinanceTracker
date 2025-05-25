@@ -13,20 +13,22 @@ public class Worker(
     ILogger<Worker> logger) : BackgroundService
 {
     public const string ActivitySourceName = "Migrations";
-    private static readonly ActivitySource ActivitySource = new(ActivitySourceName);
-
-    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+    private static readonly ActivitySource ActivitySource = new(ActivitySourceName); protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         using var activity = ActivitySource.StartActivity("Migrating database", ActivityKind.Client);
 
         try
         {
+            logger.LogInformation("Starting database migration...");
+
             using var scope = serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<FinanceTackerDbContext>();
 
             await EnsureDatabaseAsync(dbContext, cancellationToken);
             await RunMigrationAsync(dbContext, cancellationToken);
             await SeedDataAsync(dbContext, cancellationToken);
+
+            logger.LogInformation("Database migration completed successfully.");
         }
         catch (Exception ex)
         {
@@ -34,30 +36,50 @@ public class Worker(
             logger.LogError(ex, "An error occurred while migrating the database.");
             throw;
         }
-
-        hostApplicationLifetime.StopApplication();
+        finally
+        {
+            // Stop the application after migration is complete
+            hostApplicationLifetime.StopApplication();
+        }
     }
-
     private static async Task EnsureDatabaseAsync(FinanceTackerDbContext dbContext, CancellationToken cancellationToken)
     {
-        var dbCreator = dbContext.GetService<IRelationalDatabaseCreator>();
-
-        var strategy = dbContext.Database.CreateExecutionStrategy();
-        await strategy.ExecuteAsync(async () =>
+        try
         {
-            // Create the database if it does not exist.
-            // Do this first so there is then a database to start a transaction against.
-            if (!await dbCreator.ExistsAsync(cancellationToken)) await dbCreator.CreateAsync(cancellationToken);
-        });
-    }
+            var dbCreator = dbContext.GetService<IRelationalDatabaseCreator>();
 
+            var strategy = dbContext.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                // Create the database if it does not exist.
+                // Do this first so there is then a database to start a transaction against.
+                if (!await dbCreator.ExistsAsync(cancellationToken))
+                {
+                    await dbCreator.CreateAsync(cancellationToken);
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            // Log the specific error and rethrow with more context
+            throw new InvalidOperationException("Failed to ensure database exists", ex);
+        }
+    }
     private static async Task RunMigrationAsync(FinanceTackerDbContext dbContext, CancellationToken cancellationToken)
     {
-        var strategy = dbContext.Database.CreateExecutionStrategy();
-        await strategy.ExecuteAsync(async () =>
+        try
         {
-            await dbContext.Database.MigrateAsync(cancellationToken);
-        });
+            var strategy = dbContext.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                await dbContext.Database.MigrateAsync(cancellationToken);
+            });
+        }
+        catch (Exception ex)
+        {
+            // Log the specific error and rethrow with more context
+            throw new InvalidOperationException("Failed to run database migrations", ex);
+        }
     }
 
     private static async Task SeedDataAsync(FinanceTackerDbContext dbContext, CancellationToken cancellationToken)
