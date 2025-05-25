@@ -1,5 +1,5 @@
 using FinanceTracker.Data.Models;
-using FinanceTracker.ApiService.Dtos; 
+using FinanceTracker.ApiService.Dtos;
 using FinanceTracker.ApiService.Endpoints; // Add this line
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -75,7 +75,6 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-
 // Use CORS middleware - place it early in the pipeline
 app.UseCors(WebAppCorsPolicy);
 
@@ -109,6 +108,3 @@ apiV1.MapTransactionTypeEndpoints();
 app.MapDefaultEndpoints();
 
 app.Run();
-
-// Make Program class public for integration tests
-public partial class Program { }
