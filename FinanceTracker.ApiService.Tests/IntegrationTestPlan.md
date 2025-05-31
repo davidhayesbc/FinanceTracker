@@ -13,6 +13,7 @@ All integration tests will:
 - Use realistic test data following domain constraints
 - Test both success and error scenarios
 - Validate response status codes, headers, and content
+- The Migration Service will seed key tables such as AccountType and Currency
 
 ## Test Structure
 
@@ -39,14 +40,14 @@ Tests will be organized into separate test classes by endpoint group:
 
 ### 1.2 Get Cash Accounts
 - [ ] **GET `/api/v1/accounts/cash`** - Retrieve only cash accounts
-  - [ ] Test returns 200 OK with empty list when no cash accounts exist
+  - [x] Test returns 200 OK with empty list when no cash accounts exist
   - [ ] Test returns 200 OK with cash account list when accounts exist
   - [ ] Test response excludes investment accounts
   - [ ] Test response includes overdraft limit for cash accounts
 
 ### 1.3 Get Investment Accounts
 - [ ] **GET `/api/v1/accounts/investment`** - Retrieve only investment accounts
-  - [ ] Test returns 200 OK with empty list when no investment accounts exist
+  - [x] Test returns 200 OK with empty list when no investment accounts exist
   - [ ] Test returns 200 OK with investment account list when accounts exist
   - [ ] Test response excludes cash accounts
   - [ ] Test response includes broker information for investment accounts
@@ -54,14 +55,14 @@ Tests will be organized into separate test classes by endpoint group:
 ### 1.4 Get Account by ID
 - [ ] **GET `/api/v1/accounts/{id}`** - Retrieve specific account details
   - [ ] Test returns 200 OK with valid account ID
-  - [ ] Test returns 404 Not Found with invalid account ID
+  - [x] Test returns 404 Not Found with invalid account ID
   - [ ] Test response includes full account details with transactions
   - [ ] Test works for both cash and investment accounts
 
 ### 1.5 Get Account Transactions
 - [ ] **GET `/api/v1/accounts/{id}/transactions`** - Retrieve transactions for specific account
   - [ ] Test returns 200 OK with valid account ID
-  - [ ] Test returns 404 Not Found with invalid account ID
+  - [x] Test returns 404 Not Found with invalid account ID
   - [ ] Test returns empty list when account has no transactions
   - [ ] Test returns transaction list ordered by date (newest first)
   - [ ] Test includes transaction splits in response
@@ -69,14 +70,14 @@ Tests will be organized into separate test classes by endpoint group:
 ### 1.6 Get Account Recurring Transactions
 - [ ] **GET `/api/v1/accounts/{id}/recurringTransactions`** - Retrieve recurring transactions for account
   - [ ] Test returns 200 OK with valid account ID
-  - [ ] Test returns 404 Not Found with invalid account ID
+  - [x] Test returns 404 Not Found with invalid account ID
   - [ ] Test returns empty list when account has no recurring transactions
   - [ ] Test returns recurring transaction list
 
 ### 1.7 Create Cash Account
 - [ ] **POST `/api/v1/accounts/cash`** - Create new cash account
   - [ ] Test returns 201 Created with valid request data
-  - [ ] Test returns 400 Bad Request with invalid request data
+  - [x] Test returns 400 Bad Request with invalid request data
   - [ ] Test validates required fields (Name, AccountTypeId, CurrencyId)
   - [ ] Test validates AccountTypeId exists
   - [ ] Test validates CurrencyId exists
@@ -86,7 +87,7 @@ Tests will be organized into separate test classes by endpoint group:
 ### 1.8 Create Investment Account
 - [ ] **POST `/api/v1/accounts/investment`** - Create new investment account
   - [ ] Test returns 201 Created with valid request data
-  - [ ] Test returns 400 Bad Request with invalid request data
+  - [x] Test returns 400 Bad Request with invalid request data
   - [ ] Test validates required fields (Name, AccountTypeId, CurrencyId, Broker)
   - [ ] Test validates AccountTypeId exists
   - [ ] Test validates CurrencyId exists
