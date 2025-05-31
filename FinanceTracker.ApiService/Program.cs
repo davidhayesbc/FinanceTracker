@@ -47,7 +47,23 @@ builder.Services.AddCors(options =>
                       });
 });
 
-builder.AddSqlServerDbContext<FinanceTackerDbContext>("FinanceTracker");
+// Configure database - use in-memory for testing, SQL Server for production
+var useInMemoryDatabase = builder.Configuration.GetValue<bool>("UseInMemoryDatabase");
+if (useInMemoryDatabase)
+{
+    builder.Services.AddDbContext<FinanceTackerDbContext>(options =>
+    {
+        // Use a unique database name for each test run to ensure isolation
+        var dbName = Environment.GetEnvironmentVariable("TestDatabaseName") ?? $"TestDb_{Guid.NewGuid()}";
+        options.UseInMemoryDatabase(dbName);
+        options.EnableSensitiveDataLogging();
+        options.EnableDetailedErrors();
+    });
+}
+else
+{
+    builder.AddSqlServerDbContext<FinanceTackerDbContext>("FinanceTracker");
+}
 
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<FinanceTackerDbContext>("FinanceTrackerDbContext");

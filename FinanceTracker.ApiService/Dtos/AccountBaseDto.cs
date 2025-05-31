@@ -1,7 +1,7 @@
 // d:\source\FinanceTracker\FinanceTracker.ApiService\Dtos\AccountBaseDto.cs
 namespace FinanceTracker.ApiService.Dtos;
 
-public abstract class AccountBaseDto
+public class AccountBaseDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;

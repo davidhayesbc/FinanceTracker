@@ -32,12 +32,9 @@ public class AccountEndpointsIntegrationTests : SharedAspireIntegrationTestBase
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // Parse as JsonDocument to handle polymorphic response
-        var jsonContent = await response.Content.ReadAsStringAsync();
-        using var jsonDoc = JsonDocument.Parse(jsonContent);
-        var accounts = jsonDoc.RootElement;
-        accounts.ValueKind.Should().Be(JsonValueKind.Array);
-        accounts.GetArrayLength().Should().Be(0);
+        var accounts = await response.Content.ReadFromJsonAsync<List<AccountBaseDto>>();
+        accounts.Should().NotBeNull();
+        accounts.Should().BeEmpty();
     }
 
     #endregion
