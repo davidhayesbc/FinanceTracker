@@ -18,9 +18,9 @@ namespace FinanceTracker.ApiService.Tests.Tests
             await app.StartAsync();
 
             // Act
-            var httpClient = app.CreateHttpClient("webfrontend");
-            await resourceNotificationService.WaitForResourceAsync("webfrontend", KnownResourceStates.Running).WaitAsync(TimeSpan.FromSeconds(30));
-            var response = await httpClient.GetAsync("/");
+            var httpClient = app.CreateHttpClient("apiservice");
+            await resourceNotificationService.WaitForResourceAsync("apiservice", KnownResourceStates.Running).WaitAsync(TimeSpan.FromSeconds(30));
+            var response = await httpClient.GetAsync("/swagger");
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
