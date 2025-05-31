@@ -2,6 +2,8 @@
 
 This document outlines the comprehensive integration testing strategy for all API endpoints in the FinanceTracker.ApiService project. Each test will use .NET Aspire testing infrastructure to ensure proper integration between services.
 
+> **Note:** All API endpoints are rooted at `/api/v1/`. For example, the accounts endpoint is `/api/v1/accounts`.
+
 ## Testing Strategy
 
 All integration tests will:
@@ -25,39 +27,39 @@ Tests will be organized into separate test classes by endpoint group:
 
 ---
 
-## 1. Account Endpoints (`/accounts`)
+## 1. Account Endpoints (`/api/v1/accounts`)
 
 ### 1.1 Get All Accounts
-- [ ] **GET `/accounts`** - Retrieve all accounts (both cash and investment)
-  - [ ] Test returns 200 OK with empty list when no accounts exist
-  - [ ] Test returns 200 OK with account list when accounts exist
+- [ ] **GET `/api/v1/accounts`** - Retrieve all accounts (both cash and investment)
+  - [x] Test returns 200 OK with empty list when no accounts exist
+  - [x] Test returns 200 OK with account list when accounts exist
   - [ ] Test response contains both cash and investment accounts
   - [ ] Test response includes computed current balance
   - [ ] Test response includes proper account type and currency information
 
 ### 1.2 Get Cash Accounts
-- [ ] **GET `/accounts/cash`** - Retrieve only cash accounts
+- [ ] **GET `/api/v1/accounts/cash`** - Retrieve only cash accounts
   - [ ] Test returns 200 OK with empty list when no cash accounts exist
   - [ ] Test returns 200 OK with cash account list when accounts exist
   - [ ] Test response excludes investment accounts
   - [ ] Test response includes overdraft limit for cash accounts
 
 ### 1.3 Get Investment Accounts
-- [ ] **GET `/accounts/investment`** - Retrieve only investment accounts
+- [ ] **GET `/api/v1/accounts/investment`** - Retrieve only investment accounts
   - [ ] Test returns 200 OK with empty list when no investment accounts exist
   - [ ] Test returns 200 OK with investment account list when accounts exist
   - [ ] Test response excludes cash accounts
   - [ ] Test response includes broker information for investment accounts
 
 ### 1.4 Get Account by ID
-- [ ] **GET `/accounts/{id}`** - Retrieve specific account details
+- [ ] **GET `/api/v1/accounts/{id}`** - Retrieve specific account details
   - [ ] Test returns 200 OK with valid account ID
   - [ ] Test returns 404 Not Found with invalid account ID
   - [ ] Test response includes full account details with transactions
   - [ ] Test works for both cash and investment accounts
 
 ### 1.5 Get Account Transactions
-- [ ] **GET `/accounts/{id}/transactions`** - Retrieve transactions for specific account
+- [ ] **GET `/api/v1/accounts/{id}/transactions`** - Retrieve transactions for specific account
   - [ ] Test returns 200 OK with valid account ID
   - [ ] Test returns 404 Not Found with invalid account ID
   - [ ] Test returns empty list when account has no transactions
@@ -65,14 +67,14 @@ Tests will be organized into separate test classes by endpoint group:
   - [ ] Test includes transaction splits in response
 
 ### 1.6 Get Account Recurring Transactions
-- [ ] **GET `/accounts/{id}/recurringTransactions`** - Retrieve recurring transactions for account
+- [ ] **GET `/api/v1/accounts/{id}/recurringTransactions`** - Retrieve recurring transactions for account
   - [ ] Test returns 200 OK with valid account ID
   - [ ] Test returns 404 Not Found with invalid account ID
   - [ ] Test returns empty list when account has no recurring transactions
   - [ ] Test returns recurring transaction list
 
 ### 1.7 Create Cash Account
-- [ ] **POST `/accounts/cash`** - Create new cash account
+- [ ] **POST `/api/v1/accounts/cash`** - Create new cash account
   - [ ] Test returns 201 Created with valid request data
   - [ ] Test returns 400 Bad Request with invalid request data
   - [ ] Test validates required fields (Name, AccountTypeId, CurrencyId)
@@ -82,7 +84,7 @@ Tests will be organized into separate test classes by endpoint group:
   - [ ] Test response includes created account with generated ID
 
 ### 1.8 Create Investment Account
-- [ ] **POST `/accounts/investment`** - Create new investment account
+- [ ] **POST `/api/v1/accounts/investment`** - Create new investment account
   - [ ] Test returns 201 Created with valid request data
   - [ ] Test returns 400 Bad Request with invalid request data
   - [ ] Test validates required fields (Name, AccountTypeId, CurrencyId, Broker)
@@ -93,10 +95,10 @@ Tests will be organized into separate test classes by endpoint group:
 
 ---
 
-## 2. Transaction Endpoints (`/transactions`)
+## 2. Transaction Endpoints (`/api/v1/transactions`)
 
 ### 2.1 Get Cash Transactions
-- [ ] **GET `/transactions/cash`** - Retrieve all cash transactions
+- [ ] **GET `/api/v1/transactions/cash`** - Retrieve all cash transactions
   - [ ] Test returns 200 OK with empty list when no transactions exist
   - [ ] Test returns 200 OK with transaction list when transactions exist
   - [ ] Test excludes investment transactions
@@ -104,7 +106,7 @@ Tests will be organized into separate test classes by endpoint group:
   - [ ] Test orders transactions by date (newest first)
 
 ### 2.2 Get Investment Transactions
-- [ ] **GET `/transactions/investment`** - Retrieve all investment transactions
+- [ ] **GET `/api/v1/transactions/investment`** - Retrieve all investment transactions
   - [ ] Test returns 200 OK with empty list when no transactions exist
   - [ ] Test returns 200 OK with transaction list when transactions exist
   - [ ] Test excludes cash transactions
@@ -112,7 +114,7 @@ Tests will be organized into separate test classes by endpoint group:
   - [ ] Test orders transactions by date (newest first)
 
 ### 2.3 Create Cash Transaction
-- [ ] **POST `/transactions/cash`** - Create new cash transaction
+- [ ] **POST `/api/v1/transactions/cash`** - Create new cash transaction
   - [ ] Test returns 201 Created with valid request data
   - [ ] Test returns 400 Bad Request with invalid request data
   - [ ] Test validates required fields (AccountPeriodId, CategoryId, Amount, TransactionDate)
@@ -124,7 +126,7 @@ Tests will be organized into separate test classes by endpoint group:
   - [ ] Test response includes created transaction with generated ID
 
 ### 2.4 Create Investment Transaction
-- [ ] **POST `/transactions/investment`** - Create new investment transaction
+- [ ] **POST `/api/v1/transactions/investment`** - Create new investment transaction
   - [ ] Test returns 201 Created with valid request data
   - [ ] Test returns 400 Bad Request with invalid request data
   - [ ] Test validates required fields (AccountPeriodId, SecurityId, Quantity, Price, TransactionDate)
@@ -137,17 +139,17 @@ Tests will be organized into separate test classes by endpoint group:
 
 ---
 
-## 3. Transaction Split Endpoints (`/transactionSplits`)
+## 3. Transaction Split Endpoints (`/api/v1/transactionSplits`)
 
 ### 3.1 Get Transaction Splits
-- [ ] **GET `/transactionSplits`** - Retrieve all transaction splits
+- [ ] **GET `/api/v1/transactionSplits`** - Retrieve all transaction splits
   - [ ] Test returns 200 OK with empty list when no splits exist
   - [ ] Test returns 200 OK with split list when splits exist
   - [ ] Test includes transaction and category information
   - [ ] Test validates split amounts sum to transaction amount
 
 ### 3.2 Create Transaction Split
-- [ ] **POST `/transactionSplits`** - Create new transaction split
+- [ ] **POST `/api/v1/transactionSplits`** - Create new transaction split
   - [ ] Test returns 201 Created with valid request data
   - [ ] Test returns 400 Bad Request with invalid request data
   - [ ] Test validates required fields (TransactionId, CategoryId, Amount)
@@ -159,17 +161,17 @@ Tests will be organized into separate test classes by endpoint group:
 
 ---
 
-## 4. Transaction Category Endpoints (`/transactionCategories`)
+## 4. Transaction Category Endpoints (`/api/v1/transactionCategories`)
 
 ### 4.1 Get Transaction Categories
-- [ ] **GET `/transactionCategories`** - Retrieve all transaction categories
+- [ ] **GET `/api/v1/transactionCategories`** - Retrieve all transaction categories
   - [ ] Test returns 200 OK with empty list when no categories exist
   - [ ] Test returns 200 OK with category list when categories exist
   - [ ] Test includes hierarchical category structure (parent/child relationships)
   - [ ] Test includes category type information
 
 ### 4.2 Create Transaction Category
-- [ ] **POST `/transactionCategories`** - Create new transaction category
+- [ ] **POST `/api/v1/transactionCategories`** - Create new transaction category
   - [ ] Test returns 201 Created with valid request data
   - [ ] Test returns 400 Bad Request with invalid request data
   - [ ] Test validates required fields (Name, TransactionCategoryTypeId)
@@ -180,16 +182,16 @@ Tests will be organized into separate test classes by endpoint group:
 
 ---
 
-## 5. Transaction Type Endpoints (`/transactionTypes`)
+## 5. Transaction Type Endpoints (`/api/v1/transactionTypes`)
 
 ### 5.1 Get Transaction Types
-- [ ] **GET `/transactionTypes`** - Retrieve all transaction types
+- [ ] **GET `/api/v1/transactionTypes`** - Retrieve all transaction types
   - [ ] Test returns 200 OK with empty list when no types exist
   - [ ] Test returns 200 OK with type list when types exist
   - [ ] Test includes type name and description
 
 ### 5.2 Create Transaction Type
-- [ ] **POST `/transactionTypes`** - Create new transaction type
+- [ ] **POST `/api/v1/transactionTypes`** - Create new transaction type
   - [ ] Test returns 201 Created with valid request data
   - [ ] Test returns 400 Bad Request with invalid request data
   - [ ] Test validates required fields (Type)
@@ -198,16 +200,16 @@ Tests will be organized into separate test classes by endpoint group:
 
 ---
 
-## 6. Account Type Endpoints (`/accountTypes`)
+## 6. Account Type Endpoints (`/api/v1/accountTypes`)
 
 ### 6.1 Get Account Types
-- [ ] **GET `/accountTypes`** - Retrieve all account types
+- [ ] **GET `/api/v1/accountTypes`** - Retrieve all account types
   - [ ] Test returns 200 OK with empty list when no types exist
   - [ ] Test returns 200 OK with type list when types exist
   - [ ] Test includes type name and description
 
 ### 6.2 Create Account Type
-- [ ] **POST `/accountTypes`** - Create new account type
+- [ ] **POST `/api/v1/accountTypes`** - Create new account type
   - [ ] Test returns 201 Created with valid request data
   - [ ] Test returns 400 Bad Request with invalid request data
   - [ ] Test validates required fields (Type)
@@ -216,17 +218,17 @@ Tests will be organized into separate test classes by endpoint group:
 
 ---
 
-## 7. Recurring Transaction Endpoints (`/recurringTransactions`)
+## 7. Recurring Transaction Endpoints (`/api/v1/recurringTransactions`)
 
 ### 7.1 Get Recurring Transactions
-- [ ] **GET `/recurringTransactions`** - Retrieve all recurring transactions
+- [ ] **GET `/api/v1/recurringTransactions`** - Retrieve all recurring transactions
   - [ ] Test returns 200 OK with empty list when no recurring transactions exist
   - [ ] Test returns 200 OK with recurring transaction list when they exist
   - [ ] Test includes account and category information
   - [ ] Test includes recurrence pattern details
 
 ### 7.2 Create Recurring Transaction
-- [ ] **POST `/recurringTransactions`** - Create new recurring transaction
+- [ ] **POST `/api/v1/recurringTransactions`** - Create new recurring transaction
   - [ ] Test returns 201 Created with valid request data
   - [ ] Test returns 400 Bad Request with invalid request data
   - [ ] Test validates required fields (AccountId, CategoryId, Amount, StartDate, RecurrencePattern)
