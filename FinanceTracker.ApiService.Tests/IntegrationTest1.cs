@@ -1,26 +1,22 @@
+using FinanceTracker.ApiService.Tests.Infrastructure;
+
 namespace FinanceTracker.ApiService.Tests.Tests
 {
-    public class IntegrationTest1
+    public class IntegrationTest1 : SharedAspireIntegrationTestBase
     {
+        public IntegrationTest1(AspireApplicationFixture fixture) : base(fixture)
+        {
+        }
+
         [Fact]
         public async Task GetWebResourceRootReturnsOkStatusCode()
         {
             // Arrange
-            var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.FinanceTracker_AppHost>();
-            appHost.Services.ConfigureHttpClientDefaults(clientBuilder =>
-            {
-                clientBuilder.AddStandardResilienceHandler();
-            });
+            // HttpClient is already available from base class
             // To output logs to the xUnit.net ITestOutputHelper, consider adding a package from https://www.nuget.org/packages?q=xunit+logging
 
-            await using var app = await appHost.BuildAsync();
-            var resourceNotificationService = app.Services.GetRequiredService<ResourceNotificationService>();
-            await app.StartAsync();
-
             // Act
-            var httpClient = app.CreateHttpClient("apiservice");
-            await resourceNotificationService.WaitForResourceAsync("apiservice", KnownResourceStates.Running).WaitAsync(TimeSpan.FromSeconds(30));
-            var response = await httpClient.GetAsync("/swagger");
+            var response = await HttpClient.GetAsync("/swagger");
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
