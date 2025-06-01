@@ -1,4 +1,5 @@
 using FinanceTracker.Data.Models;
+using FinanceTracker.ApiService.Dtos;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -26,15 +27,29 @@ public static class TransactionTypeEndpoints
         .WithDescription("Gets all transaction types")
         .Produces<List<TransactionType>>(StatusCodes.Status200OK);
 
-        transactionTypeEndpoints.MapPost("/", async (FinanceTackerDbContext context, TransactionType transactionType) =>
+        transactionTypeEndpoints.MapPost("/", async (FinanceTackerDbContext context, CreateTransactionTypeRequestDto request) =>
         {
-            if (transactionType == null) return Results.BadRequest("Transaction type data is required");
+            if (request == null) return Results.BadRequest("Transaction type data is required");
 
             var validationResults = new List<ValidationResult>();
-            if (!Validator.TryValidateObject(transactionType, new ValidationContext(transactionType), validationResults, true))
+            if (!Validator.TryValidateObject(request, new ValidationContext(request), validationResults, true))
             {
                 return Results.BadRequest(validationResults);
             }
+
+            // Check if transaction type already exists
+            var existingTransactionType = await context.TransactionTypes
+                .FirstOrDefaultAsync(tt => tt.Type == request.Type);
+
+            if (existingTransactionType != null)
+            {
+                return Results.Conflict($"Transaction type '{request.Type}' already exists.");
+            }
+
+            var transactionType = new TransactionType
+            {
+                Type = request.Type
+            };
 
             context.TransactionTypes.Add(transactionType);
             await context.SaveChangesAsync();

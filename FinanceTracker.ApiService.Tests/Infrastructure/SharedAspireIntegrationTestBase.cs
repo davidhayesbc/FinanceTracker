@@ -28,6 +28,9 @@ namespace FinanceTracker.ApiService.Tests.Infrastructure
         public virtual async Task InitializeAsync()
         {
             await ClearDatabaseAsync();
+
+            // Ensure reference data is available for the test
+            await SeededDataHelper.EnsureReferenceDataSeededAsync(HttpClient);
         }
 
         /// <summary>

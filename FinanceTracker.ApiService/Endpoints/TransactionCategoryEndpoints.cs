@@ -1,4 +1,5 @@
 using FinanceTracker.Data.Models;
+using FinanceTracker.ApiService.Dtos;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -26,15 +27,30 @@ public static class TransactionCategoryEndpoints
         .WithDescription("Gets all transaction categories")
         .Produces<List<TransactionCategory>>(StatusCodes.Status200OK);
 
-        transactionCategoryEndpoints.MapPost("/", async (FinanceTackerDbContext context, TransactionCategory transactionCategory) =>
+        transactionCategoryEndpoints.MapPost("/", async (FinanceTackerDbContext context, CreateTransactionCategoryRequestDto request) =>
         {
-            if (transactionCategory == null) return Results.BadRequest("Transaction category data is required");
+            if (request == null) return Results.BadRequest("Transaction category data is required");
 
             var validationResults = new List<ValidationResult>();
-            if (!Validator.TryValidateObject(transactionCategory, new ValidationContext(transactionCategory), validationResults, true))
+            if (!Validator.TryValidateObject(request, new ValidationContext(request), validationResults, true))
             {
                 return Results.BadRequest(validationResults);
             }
+
+            // Check if transaction category already exists
+            var existingCategory = await context.TransactionCategories
+                .FirstOrDefaultAsync(tc => tc.Category == request.Category);
+
+            if (existingCategory != null)
+            {
+                return Results.Conflict($"Transaction category '{request.Category}' already exists.");
+            }
+
+            var transactionCategory = new TransactionCategory
+            {
+                Category = request.Category,
+                Description = request.Description
+            };
 
             context.TransactionCategories.Add(transactionCategory);
             await context.SaveChangesAsync();

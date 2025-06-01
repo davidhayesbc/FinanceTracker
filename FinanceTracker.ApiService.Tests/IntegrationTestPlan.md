@@ -13,7 +13,6 @@ All integration tests will:
 - Use realistic test data following domain constraints
 - Test both success and error scenarios
 - Validate response status codes, headers, and content
-- The Migration Service will seed key tables such as AccountType and Currency
 
 ## Test Structure
 

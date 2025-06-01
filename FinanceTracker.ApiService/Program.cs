@@ -1,6 +1,7 @@
 using FinanceTracker.Data.Models;
 using FinanceTracker.ApiService.Dtos;
 using FinanceTracker.ApiService.Endpoints; // Add this line
+using FinanceTracker.ApiService.Services; // Add services namespace
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.ComponentModel.DataAnnotations;
@@ -59,6 +60,9 @@ if (useInMemoryDatabase)
         options.EnableSensitiveDataLogging();
         options.EnableDetailedErrors();
     });
+    // Add seeding services for in-memory database
+    builder.Services.AddScoped<DatabaseSeedingService>();
+    builder.Services.AddHostedService<DatabaseSeedingHostedService>();
 }
 else
 {
@@ -115,6 +119,8 @@ var apiV1 = app.MapGroup("/api/v1");
 //Map the Api endpoints
 apiV1.MapAccountTypeEndpoints();
 apiV1.MapAccountEndpoints();
+apiV1.MapCurrencyEndpoints();
+apiV1.MapSecurityEndpoints();
 apiV1.MapRecurringTransactionEndpoints();
 apiV1.MapTransactionEndpoints();
 apiV1.MapTransactionSplitEndpoints();

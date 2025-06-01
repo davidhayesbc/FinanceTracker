@@ -1,4 +1,5 @@
 using FinanceTracker.Data.Models;
+using FinanceTracker.ApiService.Dtos;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -26,15 +27,29 @@ public static class AccountTypeEndpoints
         .WithDescription("Gets all account types")
         .Produces<List<AccountType>>(StatusCodes.Status200OK);
 
-        accountTypeEndpoints.MapPost("/", async (FinanceTackerDbContext context, AccountType accountType) =>
+        accountTypeEndpoints.MapPost("/", async (FinanceTackerDbContext context, CreateAccountTypeRequestDto request) =>
         {
-            if (accountType == null) return Results.BadRequest("Account type data is required");
+            if (request == null) return Results.BadRequest("Account type data is required");
 
             var validationResults = new List<ValidationResult>();
-            if (!Validator.TryValidateObject(accountType, new ValidationContext(accountType), validationResults, true))
+            if (!Validator.TryValidateObject(request, new ValidationContext(request), validationResults, true))
             {
                 return Results.BadRequest(validationResults);
             }
+
+            // Check if account type already exists
+            var existingAccountType = await context.AccountTypes
+                .FirstOrDefaultAsync(at => at.Type == request.Type);
+
+            if (existingAccountType != null)
+            {
+                return Results.Conflict($"Account type '{request.Type}' already exists.");
+            }
+
+            var accountType = new AccountType
+            {
+                Type = request.Type
+            };
 
             context.AccountTypes.Add(accountType);
             await context.SaveChangesAsync();

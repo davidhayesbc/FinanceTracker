@@ -137,12 +137,15 @@ public class AccountEndpointsIntegrationTests : SharedAspireIntegrationTestBase
     public async Task CreateCashAccount_WithValidData_ReturnsCreatedAndCorrectAccount()
     {
         // Arrange
+        var savingsAccountTypeId = await SeededDataHelper.GetAccountTypeIdAsync(HttpClient, SeededDataHelper.AccountTypes.Savings);
+        var cadCurrencyId = SeededDataHelper.GetKnownCurrencyId(SeededDataHelper.Currencies.CAD.Symbol);
+
         var request = new CreateCashAccountRequestDto
         {
             Name = "Test Cash Account",
             Institution = "Test Bank",
-            AccountTypeId = 1,
-            CurrencyId = 1,
+            AccountTypeId = savingsAccountTypeId,
+            CurrencyId = cadCurrencyId,
             InitialBalance = 123.45m,
             OverdraftLimit = 500.00m,
             IsActive = true
@@ -178,12 +181,14 @@ public class AccountEndpointsIntegrationTests : SharedAspireIntegrationTestBase
     public async Task CreateCashAccount_WithInvalidAccountTypeId_ReturnsBadRequest()
     {
         // Arrange: use seeded currency, invalid account type
+        var cadCurrencyId = SeededDataHelper.GetKnownCurrencyId(SeededDataHelper.Currencies.CAD.Symbol);
+
         var request = new CreateCashAccountRequestDto
         {
             Name = "Test Cash Account",
             Institution = "Test Bank",
-            AccountTypeId = 9999,
-            CurrencyId = 1,
+            AccountTypeId = 9999, // Invalid ID
+            CurrencyId = cadCurrencyId,
             InitialBalance = 100,
             OverdraftLimit = 0,
             IsActive = true
@@ -200,12 +205,14 @@ public class AccountEndpointsIntegrationTests : SharedAspireIntegrationTestBase
     public async Task CreateCashAccount_WithInvalidCurrencyId_ReturnsBadRequest()
     {
         // Arrange: use seeded account type, invalid currency
+        var savingsAccountTypeId = await SeededDataHelper.GetAccountTypeIdAsync(HttpClient, SeededDataHelper.AccountTypes.Savings);
+
         var request = new CreateCashAccountRequestDto
         {
             Name = "Test Cash Account",
             Institution = "Test Bank",
-            AccountTypeId = 1,
-            CurrencyId = 9999,
+            AccountTypeId = savingsAccountTypeId,
+            CurrencyId = 9999, // Invalid ID
             InitialBalance = 100,
             OverdraftLimit = 0,
             IsActive = true
