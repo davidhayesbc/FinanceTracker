@@ -26,19 +26,16 @@ namespace FinanceTracker.ApiService.Tests.Infrastructure
         /// </summary>
         public async Task InitializeAsync()
         {
-            // Set environment variable for API service to use in-memory database BEFORE building
-            Environment.SetEnvironmentVariable("UseInMemoryDatabase", "true");
-
             // Create the Aspire application host with test configuration
             var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.FinanceTracker_AppHost>();
 
-            // Configure the services to use in-memory database for testing
+            // Configure the services for testing
             appHost.Services.ConfigureHttpClientDefaults(clientBuilder =>
             {
                 clientBuilder.AddStandardResilienceHandler();
             });
 
-            // Override the environment to use in-memory database
+            // Configure for faster test execution
             appHost.Services.Configure<Microsoft.Extensions.Hosting.HostOptions>(options =>
             {
                 options.ServicesStartConcurrently = true;
@@ -51,7 +48,7 @@ namespace FinanceTracker.ApiService.Tests.Infrastructure
 
             await _app.StartAsync();
 
-            // Wait for the migration service to complete first
+            // Wait for the migration service to complete first - this will set up the database
             await resourceNotificationService
                 .WaitForResourceAsync("migrationservice", KnownResourceStates.Finished)
                 .WaitAsync(TimeSpan.FromSeconds(60));
@@ -64,14 +61,14 @@ namespace FinanceTracker.ApiService.Tests.Infrastructure
                 .WaitForResourceAsync("apiservice", KnownResourceStates.Running)
                 .WaitAsync(TimeSpan.FromSeconds(30));
 
-            // Seed the in-memory database with essential data
-            await SeedDatabaseAsync();
+            // Verify the setup by checking API health
+            await VerifyApiServiceAsync();
         }
 
         /// <summary>
-        /// Seeds the in-memory database with essential data required for tests
+        /// Verifies that the API service is ready and seeded data is available
         /// </summary>
-        private async Task SeedDatabaseAsync()
+        private async Task VerifyApiServiceAsync()
         {
             try
             {
@@ -83,8 +80,8 @@ namespace FinanceTracker.ApiService.Tests.Infrastructure
 
                 Console.WriteLine("AspireApplicationFixture: API service is healthy");
 
-                // Verify that essential reference data exists by making some API calls
-                Console.WriteLine("AspireApplicationFixture: Verifying reference data...");
+                // Verify that essential reference data exists (seeded by migration service)
+                Console.WriteLine("AspireApplicationFixture: Verifying seeded reference data...");
 
                 var accountTypesResponse = await HttpClient.GetAsync("/api/v1/accountTypes");
                 if (accountTypesResponse.IsSuccessStatusCode)
@@ -108,12 +105,12 @@ namespace FinanceTracker.ApiService.Tests.Infrastructure
                     Console.WriteLine($"AspireApplicationFixture: Failed to check transaction types - Status: {transactionTypesResponse.StatusCode}");
                 }
 
-                Console.WriteLine("AspireApplicationFixture: Database verification complete");
+                Console.WriteLine("AspireApplicationFixture: API service verification complete");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"AspireApplicationFixture: Error during database seeding/verification: {ex.Message}");
-                throw new InvalidOperationException("Failed to initialize API service database", ex);
+                Console.WriteLine($"AspireApplicationFixture: Error during API service verification: {ex.Message}");
+                throw new InvalidOperationException("Failed to verify API service setup", ex);
             }
         }
 

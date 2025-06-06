@@ -324,339 +324,55 @@ public static class SeededDataHelper
     }
 
     /// <summary>
-    /// Ensures all reference data is seeded in the database for tests
-    /// This method will create the reference data using API calls if it doesn't exist
+    /// Ensures all reference data is available in the database for tests.
+    /// Since we're using the containerized SQL Server with migration service,
+    /// the data should already be seeded. This method verifies the data exists.
     /// </summary>
     /// <param name="httpClient">HTTP client for API calls</param>
     /// <returns>Task</returns>
     public static async Task EnsureReferenceDataSeededAsync(HttpClient httpClient)
     {
-        Console.WriteLine("EnsureReferenceDataSeededAsync: Starting reference data seeding...");
+        Console.WriteLine("EnsureReferenceDataSeededAsync: Verifying reference data exists...");
 
         try
         {
-            await EnsureAccountTypesSeededAsync(httpClient);
-            await EnsureTransactionTypesSeededAsync(httpClient);
-            await EnsureTransactionCategoriesSeededAsync(httpClient);
-
-            Console.WriteLine("EnsureReferenceDataSeededAsync: All reference data seeding completed successfully");
+            await VerifyReferenceDataExistsAsync(httpClient);
+            Console.WriteLine("EnsureReferenceDataSeededAsync: All reference data verification completed successfully");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"EnsureReferenceDataSeededAsync: Error during reference data seeding: {ex.Message}");
-            throw new InvalidOperationException($"Failed to ensure reference data is seeded: {ex.Message}", ex);
+            Console.WriteLine($"EnsureReferenceDataSeededAsync: Error during reference data verification: {ex.Message}");
+            throw new InvalidOperationException($"Failed to verify reference data exists: {ex.Message}", ex);
         }
     }
 
     /// <summary>
-    /// Ensures account types are seeded by checking if they exist and creating them if they don't
+    /// Verifies that all expected reference data exists in the database
     /// </summary>
-    private static async Task EnsureAccountTypesSeededAsync(HttpClient httpClient)
+    private static async Task VerifyReferenceDataExistsAsync(HttpClient httpClient)
     {
-        try
+        // Verify account types exist
+        var accountTypes = await GetAllAccountTypesAsync(httpClient);
+        if (accountTypes.Count == 0)
         {
-            var response = await httpClient.GetAsync("/api/v1/accountTypes");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var accountTypes = await response.Content.ReadFromJsonAsync<List<AccountType>>();
-
-                if (accountTypes?.Count > 0)
-                {
-                    Console.WriteLine($"EnsureAccountTypesSeededAsync: Found {accountTypes.Count} existing account types: [{string.Join(", ", accountTypes.Select(at => at.Type))}]");
-                    return; // Already seeded
-                }
-            }
-            else
-            {
-                Console.WriteLine($"EnsureAccountTypesSeededAsync: Failed to check existing account types. Status: {response.StatusCode}");
-            }
+            throw new InvalidOperationException("No account types found in database. Migration service may not have completed properly.");
         }
-        catch (Exception ex)
+        Console.WriteLine($"EnsureReferenceDataSeededAsync: Verified {accountTypes.Count} account types exist: [{string.Join(", ", accountTypes.Select(at => at.Type))}]");
+
+        // Verify transaction types exist
+        var transactionTypes = await GetAllTransactionTypesAsync(httpClient);
+        if (transactionTypes.Count == 0)
         {
-            Console.WriteLine($"EnsureAccountTypesSeededAsync: Error checking existing account types: {ex.Message}");
+            throw new InvalidOperationException("No transaction types found in database. Migration service may not have completed properly.");
         }
+        Console.WriteLine($"EnsureReferenceDataSeededAsync: Verified {transactionTypes.Count} transaction types exist: [{string.Join(", ", transactionTypes.Select(tt => tt.Type))}]");
 
-        Console.WriteLine("EnsureAccountTypesSeededAsync: No account types found, creating them...");
-
-        // Create the standard account types used in tests
-        var accountTypesToCreate = new[]
+        // Verify transaction categories exist
+        var categories = await GetAllTransactionCategoriesAsync(httpClient);
+        if (categories.Count == 0)
         {
-            AccountTypes.Savings,
-            AccountTypes.Current,
-            AccountTypes.Investment,
-            AccountTypes.Property,
-            AccountTypes.Mortgage,
-            AccountTypes.CreditCard,
-            AccountTypes.LineOfCredit
-        };
-
-        foreach (var accountTypeName in accountTypesToCreate)
-        {
-            var createRequest = new CreateAccountTypeRequestDto
-            {
-                Type = accountTypeName
-            };
-
-            try
-            {
-                Console.WriteLine($"EnsureAccountTypesSeededAsync: Creating account type '{accountTypeName}'...");
-                var response = await httpClient.PostAsJsonAsync("/api/v1/accountTypes", createRequest);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    Console.WriteLine($"EnsureAccountTypesSeededAsync: Successfully created account type '{accountTypeName}'");
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
-                {
-                    Console.WriteLine($"EnsureAccountTypesSeededAsync: Account type '{accountTypeName}' already exists");
-                }
-                else
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"EnsureAccountTypesSeededAsync: Failed to create account type '{accountTypeName}'. Status: {response.StatusCode}, Content: {errorContent}");
-                }
-            }
-            catch (HttpRequestException ex) when (ex.Message.Contains("409") || ex.Message.Contains("Conflict"))
-            {
-                Console.WriteLine($"EnsureAccountTypesSeededAsync: Account type '{accountTypeName}' already exists (HttpRequestException)");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"EnsureAccountTypesSeededAsync: Error creating account type '{accountTypeName}': {ex.Message}");
-
-                // Wait a bit and retry once
-                await Task.Delay(1000);
-                try
-                {
-                    Console.WriteLine($"EnsureAccountTypesSeededAsync: Retrying creation of account type '{accountTypeName}'...");
-                    var retryResponse = await httpClient.PostAsJsonAsync("/api/v1/accountTypes", createRequest);
-
-                    if (retryResponse.IsSuccessStatusCode)
-                    {
-                        Console.WriteLine($"EnsureAccountTypesSeededAsync: Successfully created account type '{accountTypeName}' on retry");
-                    }
-                    else
-                    {
-                        var errorContent = await retryResponse.Content.ReadAsStringAsync();
-                        Console.WriteLine($"EnsureAccountTypesSeededAsync: Failed to create account type '{accountTypeName}' on retry. Status: {retryResponse.StatusCode}, Content: {errorContent}");
-                    }
-                }
-                catch (Exception retryEx)
-                {
-                    throw new InvalidOperationException($"Failed to create account type '{accountTypeName}' after retry. Original error: {ex.Message}, Retry error: {retryEx.Message}", retryEx);
-                }
-            }
+            throw new InvalidOperationException("No transaction categories found in database. Migration service may not have completed properly.");
         }
-
-        Console.WriteLine("EnsureAccountTypesSeededAsync: Finished creating account types");
-    }
-
-    /// <summary>
-    /// Ensures transaction types are seeded by checking if they exist and creating them if they don't
-    /// </summary>
-    private static async Task EnsureTransactionTypesSeededAsync(HttpClient httpClient)
-    {
-        try
-        {
-            var response = await httpClient.GetAsync("/api/v1/transactionTypes");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var transactionTypes = await response.Content.ReadFromJsonAsync<List<TransactionType>>();
-
-                if (transactionTypes?.Count > 0)
-                {
-                    Console.WriteLine($"EnsureTransactionTypesSeededAsync: Found {transactionTypes.Count} existing transaction types: [{string.Join(", ", transactionTypes.Select(tt => tt.Type))}]");
-                    return; // Already seeded
-                }
-            }
-            else
-            {
-                Console.WriteLine($"EnsureTransactionTypesSeededAsync: Failed to check existing transaction types. Status: {response.StatusCode}");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"EnsureTransactionTypesSeededAsync: Error checking existing transaction types: {ex.Message}");
-        }
-
-        Console.WriteLine("EnsureTransactionTypesSeededAsync: No transaction types found, creating them...");
-
-        // Create the standard transaction types used in tests
-        var transactionTypesToCreate = new[]
-        {
-            TransactionTypes.Buy,
-            TransactionTypes.Sell,
-            TransactionTypes.Short,
-            TransactionTypes.Cover,
-            TransactionTypes.Deposit,
-            TransactionTypes.Withdrawal,
-            TransactionTypes.Purchase,
-            TransactionTypes.Refund
-        };
-
-        foreach (var transactionTypeName in transactionTypesToCreate)
-        {
-            var createRequest = new CreateTransactionTypeRequestDto
-            {
-                Type = transactionTypeName
-            };
-
-            try
-            {
-                Console.WriteLine($"EnsureTransactionTypesSeededAsync: Creating transaction type '{transactionTypeName}'...");
-                var response = await httpClient.PostAsJsonAsync("/api/v1/transactionTypes", createRequest);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    Console.WriteLine($"EnsureTransactionTypesSeededAsync: Successfully created transaction type '{transactionTypeName}'");
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
-                {
-                    Console.WriteLine($"EnsureTransactionTypesSeededAsync: Transaction type '{transactionTypeName}' already exists");
-                }
-                else
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"EnsureTransactionTypesSeededAsync: Failed to create transaction type '{transactionTypeName}'. Status: {response.StatusCode}, Content: {errorContent}");
-                }
-            }
-            catch (HttpRequestException ex) when (ex.Message.Contains("409") || ex.Message.Contains("Conflict"))
-            {
-                Console.WriteLine($"EnsureTransactionTypesSeededAsync: Transaction type '{transactionTypeName}' already exists (HttpRequestException)");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"EnsureTransactionTypesSeededAsync: Error creating transaction type '{transactionTypeName}': {ex.Message}");
-
-                // Wait a bit and retry once
-                await Task.Delay(1000);
-                try
-                {
-                    Console.WriteLine($"EnsureTransactionTypesSeededAsync: Retrying creation of transaction type '{transactionTypeName}'...");
-                    var retryResponse = await httpClient.PostAsJsonAsync("/api/v1/transactionTypes", createRequest);
-
-                    if (retryResponse.IsSuccessStatusCode)
-                    {
-                        Console.WriteLine($"EnsureTransactionTypesSeededAsync: Successfully created transaction type '{transactionTypeName}' on retry");
-                    }
-                    else
-                    {
-                        var errorContent = await retryResponse.Content.ReadAsStringAsync();
-                        Console.WriteLine($"EnsureTransactionTypesSeededAsync: Failed to create transaction type '{transactionTypeName}' on retry. Status: {retryResponse.StatusCode}, Content: {errorContent}");
-                    }
-                }
-                catch (Exception retryEx)
-                {
-                    throw new InvalidOperationException($"Failed to create transaction type '{transactionTypeName}' after retry. Original error: {ex.Message}, Retry error: {retryEx.Message}", retryEx);
-                }
-            }
-        }
-
-        Console.WriteLine("EnsureTransactionTypesSeededAsync: Finished creating transaction types");
-    }
-
-    /// <summary>
-    /// Ensures transaction categories are seeded by checking if they exist and creating them if they don't
-    /// </summary>
-    private static async Task EnsureTransactionCategoriesSeededAsync(HttpClient httpClient)
-    {
-        try
-        {
-            var response = await httpClient.GetAsync("/api/v1/transactionCategories");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var categories = await response.Content.ReadFromJsonAsync<List<TransactionCategory>>();
-
-                if (categories?.Count > 0)
-                {
-                    Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Found {categories.Count} existing transaction categories: [{string.Join(", ", categories.Select(tc => tc.Category))}]");
-                    return; // Already seeded
-                }
-            }
-            else
-            {
-                Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Failed to check existing transaction categories. Status: {response.StatusCode}");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Error checking existing transaction categories: {ex.Message}");
-        }
-
-        Console.WriteLine("EnsureTransactionCategoriesSeededAsync: No transaction categories found, creating them...");
-
-        // Create the standard transaction categories used in tests
-        var categoriesToCreate = new[]
-        {
-            new { Category = Categories.Groceries.Category, Description = Categories.Groceries.Description },
-            new { Category = Categories.Restaurants.Category, Description = Categories.Restaurants.Description },
-            new { Category = Categories.Entertainment.Category, Description = Categories.Entertainment.Description },
-            new { Category = Categories.Utilities.Category, Description = Categories.Utilities.Description },
-            new { Category = Categories.Health.Category, Description = Categories.Health.Description }
-        };
-
-        foreach (var categoryData in categoriesToCreate)
-        {
-            var createRequest = new CreateTransactionCategoryRequestDto
-            {
-                Category = categoryData.Category,
-                Description = categoryData.Description
-            };
-
-            try
-            {
-                Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Creating transaction category '{categoryData.Category}'...");
-                var response = await httpClient.PostAsJsonAsync("/api/v1/transactionCategories", createRequest);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Successfully created transaction category '{categoryData.Category}'");
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
-                {
-                    Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Transaction category '{categoryData.Category}' already exists");
-                }
-                else
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Failed to create transaction category '{categoryData.Category}'. Status: {response.StatusCode}, Content: {errorContent}");
-                }
-            }
-            catch (HttpRequestException ex) when (ex.Message.Contains("409") || ex.Message.Contains("Conflict"))
-            {
-                Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Transaction category '{categoryData.Category}' already exists (HttpRequestException)");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Error creating transaction category '{categoryData.Category}': {ex.Message}");
-
-                // Wait a bit and retry once
-                await Task.Delay(1000);
-                try
-                {
-                    Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Retrying creation of transaction category '{categoryData.Category}'...");
-                    var retryResponse = await httpClient.PostAsJsonAsync("/api/v1/transactionCategories", createRequest);
-
-                    if (retryResponse.IsSuccessStatusCode)
-                    {
-                        Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Successfully created transaction category '{categoryData.Category}' on retry");
-                    }
-                    else
-                    {
-                        var errorContent = await retryResponse.Content.ReadAsStringAsync();
-                        Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Failed to create transaction category '{categoryData.Category}' on retry. Status: {retryResponse.StatusCode}, Content: {errorContent}");
-                    }
-                }
-                catch (Exception retryEx)
-                {
-                    throw new InvalidOperationException($"Failed to create transaction category '{categoryData.Category}' after retry. Original error: {ex.Message}, Retry error: {retryEx.Message}", retryEx);
-                }
-            }
-        }
-
-        Console.WriteLine("EnsureTransactionCategoriesSeededAsync: Finished creating transaction categories");
+        Console.WriteLine($"EnsureReferenceDataSeededAsync: Verified {categories.Count} transaction categories exist: [{string.Join(", ", categories.Select(tc => tc.Category))}]");
     }
 }

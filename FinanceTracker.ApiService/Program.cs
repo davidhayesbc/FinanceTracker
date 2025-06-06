@@ -1,7 +1,6 @@
 using FinanceTracker.Data.Models;
 using FinanceTracker.ApiService.Dtos;
-using FinanceTracker.ApiService.Endpoints; // Add this line
-using FinanceTracker.ApiService.Services; // Add services namespace
+using FinanceTracker.ApiService.Endpoints;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.ComponentModel.DataAnnotations;
@@ -48,26 +47,8 @@ builder.Services.AddCors(options =>
                       });
 });
 
-// Configure database - use in-memory for testing, SQL Server for production
-var useInMemoryDatabase = builder.Configuration.GetValue<bool>("UseInMemoryDatabase");
-if (useInMemoryDatabase)
-{
-    builder.Services.AddDbContext<FinanceTackerDbContext>(options =>
-    {
-        // Use a unique database name for each test run to ensure isolation
-        var dbName = Environment.GetEnvironmentVariable("TestDatabaseName") ?? $"TestDb_{Guid.NewGuid()}";
-        options.UseInMemoryDatabase(dbName);
-        options.EnableSensitiveDataLogging();
-        options.EnableDetailedErrors();
-    });
-    // Add seeding services for in-memory database
-    builder.Services.AddScoped<DatabaseSeedingService>();
-    builder.Services.AddHostedService<DatabaseSeedingHostedService>();
-}
-else
-{
-    builder.AddSqlServerDbContext<FinanceTackerDbContext>("FinanceTracker");
-}
+// Configure database - use SQL Server
+builder.AddSqlServerDbContext<FinanceTackerDbContext>("FinanceTracker");
 
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<FinanceTackerDbContext>("FinanceTrackerDbContext");
