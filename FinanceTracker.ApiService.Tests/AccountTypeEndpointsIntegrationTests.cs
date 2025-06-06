@@ -19,6 +19,72 @@ public class AccountTypeEndpointsIntegrationTests : SharedAspireIntegrationTestB
     {
     }
 
+    /// <summary>
+    /// Override to NOT seed reference data for AccountType tests
+    /// since we want to test account type CRUD operations in isolation
+    /// </summary>
+    public override async Task InitializeAsync()
+    {
+        await ClearDatabaseAsync();
+        // Intentionally NOT calling SeededDataHelper.EnsureReferenceDataSeededAsync
+        // for these tests since we want to test CRUD operations in isolation
+    }
+
+    /// <summary>
+    /// Clear database by calling delete endpoints for all entities
+    /// </summary>
+    private async Task ClearDatabaseAsync()
+    {
+        try
+        {
+            // Clear accounts first (they depend on account types)
+            var accountsResponse = await HttpClient.GetAsync("/api/v1/accounts");
+            if (accountsResponse.IsSuccessStatusCode)
+            {
+                var accounts = await accountsResponse.Content.ReadFromJsonAsync<List<AccountBaseDto>>();
+                if (accounts != null)
+                {
+                    foreach (var account in accounts)
+                    {
+                        await HttpClient.DeleteAsync($"/api/v1/accounts/{account.Id}");
+                    }
+                }
+            }
+
+            // Clear account types
+            var accountTypesResponse = await HttpClient.GetAsync("/api/v1/accountTypes");
+            if (accountTypesResponse.IsSuccessStatusCode)
+            {
+                var accountTypes = await accountTypesResponse.Content.ReadFromJsonAsync<List<AccountType>>();
+                if (accountTypes != null)
+                {
+                    foreach (var accountType in accountTypes)
+                    {
+                        await HttpClient.DeleteAsync($"/api/v1/accountTypes/{accountType.Id}");
+                    }
+                }
+            }
+
+            // Clear currencies
+            var currenciesResponse = await HttpClient.GetAsync("/api/v1/currencies");
+            if (currenciesResponse.IsSuccessStatusCode)
+            {
+                var currencies = await currenciesResponse.Content.ReadFromJsonAsync<List<CurrencyDto>>();
+                if (currencies != null)
+                {
+                    foreach (var currency in currencies)
+                    {
+                        await HttpClient.DeleteAsync($"/api/v1/currencies/{currency.Id}");
+                    }
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // Ignore errors during cleanup - database might be empty
+        }
+    }
+
     #region Get All Account Types Tests
 
     [Fact]
