@@ -124,17 +124,35 @@ public static class SeededDataHelper
     /// <returns>Account type ID</returns>
     public static async Task<int> GetAccountTypeIdAsync(HttpClient httpClient, string typeName)
     {
-        var accountTypes = await httpClient.GetFromJsonAsync<List<AccountType>>("/api/v1/accountTypes");
+        try
+        {
+            var response = await httpClient.GetAsync("/api/v1/accountTypes");
 
-        if (accountTypes == null)
-            throw new InvalidOperationException("Failed to retrieve account types from API");
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new InvalidOperationException($"Failed to retrieve account types from API. Status: {response.StatusCode}, Content: {errorContent}");
+            }
 
-        var accountType = accountTypes.FirstOrDefault(at => at.Type == typeName);
+            var accountTypes = await response.Content.ReadFromJsonAsync<List<AccountType>>();
 
-        if (accountType == null)
-            throw new InvalidOperationException($"Account type '{typeName}' not found. Ensure database is properly seeded.");
+            if (accountTypes == null)
+                throw new InvalidOperationException("Failed to retrieve account types from API - response was null");
 
-        return accountType.Id;
+            var accountType = accountTypes.FirstOrDefault(at => at.Type == typeName);
+
+            if (accountType == null)
+            {
+                var availableTypes = string.Join(", ", accountTypes.Select(at => at.Type));
+                throw new InvalidOperationException($"Account type '{typeName}' not found. Available types: [{availableTypes}]. Ensure database is properly seeded.");
+            }
+
+            return accountType.Id;
+        }
+        catch (Exception ex) when (!(ex is InvalidOperationException))
+        {
+            throw new InvalidOperationException($"Error retrieving account type '{typeName}': {ex.Message}", ex);
+        }
     }
 
     /// <summary>
@@ -145,17 +163,35 @@ public static class SeededDataHelper
     /// <returns>Transaction type ID</returns>
     public static async Task<int> GetTransactionTypeIdAsync(HttpClient httpClient, string typeName)
     {
-        var transactionTypes = await httpClient.GetFromJsonAsync<List<TransactionType>>("/api/v1/transactionTypes");
+        try
+        {
+            var response = await httpClient.GetAsync("/api/v1/transactionTypes");
 
-        if (transactionTypes == null)
-            throw new InvalidOperationException("Failed to retrieve transaction types from API");
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new InvalidOperationException($"Failed to retrieve transaction types from API. Status: {response.StatusCode}, Content: {errorContent}");
+            }
 
-        var transactionType = transactionTypes.FirstOrDefault(tt => tt.Type == typeName);
+            var transactionTypes = await response.Content.ReadFromJsonAsync<List<TransactionType>>();
 
-        if (transactionType == null)
-            throw new InvalidOperationException($"Transaction type '{typeName}' not found. Ensure database is properly seeded.");
+            if (transactionTypes == null)
+                throw new InvalidOperationException("Failed to retrieve transaction types from API - response was null");
 
-        return transactionType.Id;
+            var transactionType = transactionTypes.FirstOrDefault(tt => tt.Type == typeName);
+
+            if (transactionType == null)
+            {
+                var availableTypes = string.Join(", ", transactionTypes.Select(tt => tt.Type));
+                throw new InvalidOperationException($"Transaction type '{typeName}' not found. Available types: [{availableTypes}]. Ensure database is properly seeded.");
+            }
+
+            return transactionType.Id;
+        }
+        catch (Exception ex) when (!(ex is InvalidOperationException))
+        {
+            throw new InvalidOperationException($"Error retrieving transaction type '{typeName}': {ex.Message}", ex);
+        }
     }
 
     /// <summary>
@@ -166,17 +202,35 @@ public static class SeededDataHelper
     /// <returns>Transaction category ID</returns>
     public static async Task<int> GetTransactionCategoryIdAsync(HttpClient httpClient, string categoryName)
     {
-        var categories = await httpClient.GetFromJsonAsync<List<TransactionCategory>>("/api/v1/transactionCategories");
+        try
+        {
+            var response = await httpClient.GetAsync("/api/v1/transactionCategories");
 
-        if (categories == null)
-            throw new InvalidOperationException("Failed to retrieve transaction categories from API");
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new InvalidOperationException($"Failed to retrieve transaction categories from API. Status: {response.StatusCode}, Content: {errorContent}");
+            }
 
-        var category = categories.FirstOrDefault(tc => tc.Category == categoryName);
+            var categories = await response.Content.ReadFromJsonAsync<List<TransactionCategory>>();
 
-        if (category == null)
-            throw new InvalidOperationException($"Transaction category '{categoryName}' not found. Ensure database is properly seeded.");
+            if (categories == null)
+                throw new InvalidOperationException("Failed to retrieve transaction categories from API - response was null");
 
-        return category.Id;
+            var category = categories.FirstOrDefault(tc => tc.Category == categoryName);
+
+            if (category == null)
+            {
+                var availableCategories = string.Join(", ", categories.Select(tc => tc.Category));
+                throw new InvalidOperationException($"Transaction category '{categoryName}' not found. Available categories: [{availableCategories}]. Ensure database is properly seeded.");
+            }
+
+            return category.Id;
+        }
+        catch (Exception ex) when (!(ex is InvalidOperationException))
+        {
+            throw new InvalidOperationException($"Error retrieving transaction category '{categoryName}': {ex.Message}", ex);
+        }
     }
 
     /// <summary>
@@ -220,17 +274,35 @@ public static class SeededDataHelper
     /// <returns>Currency ID</returns>
     public static async Task<int> GetCurrencyIdAsync(HttpClient httpClient, string symbol)
     {
-        var currencies = await httpClient.GetFromJsonAsync<List<Currency>>("/api/v1/currencies");
+        try
+        {
+            var response = await httpClient.GetAsync("/api/v1/currencies");
 
-        if (currencies == null)
-            throw new InvalidOperationException("Failed to retrieve currencies from API");
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new InvalidOperationException($"Failed to retrieve currencies from API. Status: {response.StatusCode}, Content: {errorContent}");
+            }
 
-        var currency = currencies.FirstOrDefault(c => c.Symbol == symbol);
+            var currencies = await response.Content.ReadFromJsonAsync<List<Currency>>();
 
-        if (currency == null)
-            throw new InvalidOperationException($"Currency '{symbol}' not found. Ensure database is properly seeded.");
+            if (currencies == null)
+                throw new InvalidOperationException("Failed to retrieve currencies from API - response was null");
 
-        return currency.Id;
+            var currency = currencies.FirstOrDefault(c => c.Symbol == symbol);
+
+            if (currency == null)
+            {
+                var availableCurrencies = string.Join(", ", currencies.Select(c => c.Symbol));
+                throw new InvalidOperationException($"Currency '{symbol}' not found. Available currencies: [{availableCurrencies}]. Ensure database is properly seeded.");
+            }
+
+            return currency.Id;
+        }
+        catch (Exception ex) when (!(ex is InvalidOperationException))
+        {
+            throw new InvalidOperationException($"Error retrieving currency '{symbol}': {ex.Message}", ex);
+        }
     }
 
     /// <summary>
@@ -259,9 +331,21 @@ public static class SeededDataHelper
     /// <returns>Task</returns>
     public static async Task EnsureReferenceDataSeededAsync(HttpClient httpClient)
     {
-        await EnsureAccountTypesSeededAsync(httpClient);
-        await EnsureTransactionTypesSeededAsync(httpClient);
-        await EnsureTransactionCategoriesSeededAsync(httpClient);
+        Console.WriteLine("EnsureReferenceDataSeededAsync: Starting reference data seeding...");
+
+        try
+        {
+            await EnsureAccountTypesSeededAsync(httpClient);
+            await EnsureTransactionTypesSeededAsync(httpClient);
+            await EnsureTransactionCategoriesSeededAsync(httpClient);
+
+            Console.WriteLine("EnsureReferenceDataSeededAsync: All reference data seeding completed successfully");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"EnsureReferenceDataSeededAsync: Error during reference data seeding: {ex.Message}");
+            throw new InvalidOperationException($"Failed to ensure reference data is seeded: {ex.Message}", ex);
+        }
     }
 
     /// <summary>
@@ -271,15 +355,29 @@ public static class SeededDataHelper
     {
         try
         {
-            var accountTypes = await httpClient.GetFromJsonAsync<List<AccountType>>("/api/v1/accountTypes");
+            var response = await httpClient.GetAsync("/api/v1/accountTypes");
 
-            if (accountTypes?.Count > 0)
-                return; // Already seeded
+            if (response.IsSuccessStatusCode)
+            {
+                var accountTypes = await response.Content.ReadFromJsonAsync<List<AccountType>>();
+
+                if (accountTypes?.Count > 0)
+                {
+                    Console.WriteLine($"EnsureAccountTypesSeededAsync: Found {accountTypes.Count} existing account types: [{string.Join(", ", accountTypes.Select(at => at.Type))}]");
+                    return; // Already seeded
+                }
+            }
+            else
+            {
+                Console.WriteLine($"EnsureAccountTypesSeededAsync: Failed to check existing account types. Status: {response.StatusCode}");
+            }
         }
-        catch
+        catch (Exception ex)
         {
-            // If the call fails, we'll proceed to create the data
+            Console.WriteLine($"EnsureAccountTypesSeededAsync: Error checking existing account types: {ex.Message}");
         }
+
+        Console.WriteLine("EnsureAccountTypesSeededAsync: No account types found, creating them...");
 
         // Create the standard account types used in tests
         var accountTypesToCreate = new[]
@@ -302,27 +400,56 @@ public static class SeededDataHelper
 
             try
             {
-                await httpClient.PostAsJsonAsync("/api/v1/accountTypes", createRequest);
+                Console.WriteLine($"EnsureAccountTypesSeededAsync: Creating account type '{accountTypeName}'...");
+                var response = await httpClient.PostAsJsonAsync("/api/v1/accountTypes", createRequest);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"EnsureAccountTypesSeededAsync: Successfully created account type '{accountTypeName}'");
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    Console.WriteLine($"EnsureAccountTypesSeededAsync: Account type '{accountTypeName}' already exists");
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"EnsureAccountTypesSeededAsync: Failed to create account type '{accountTypeName}'. Status: {response.StatusCode}, Content: {errorContent}");
+                }
             }
             catch (HttpRequestException ex) when (ex.Message.Contains("409") || ex.Message.Contains("Conflict"))
             {
-                // Account type already exists, continue
+                Console.WriteLine($"EnsureAccountTypesSeededAsync: Account type '{accountTypeName}' already exists (HttpRequestException)");
             }
-            catch
+            catch (Exception ex)
             {
-                // Other errors might indicate API is not ready, so we'll wait a bit and retry
+                Console.WriteLine($"EnsureAccountTypesSeededAsync: Error creating account type '{accountTypeName}': {ex.Message}");
+
+                // Wait a bit and retry once
                 await Task.Delay(1000);
                 try
                 {
-                    await httpClient.PostAsJsonAsync("/api/v1/accountTypes", createRequest);
+                    Console.WriteLine($"EnsureAccountTypesSeededAsync: Retrying creation of account type '{accountTypeName}'...");
+                    var retryResponse = await httpClient.PostAsJsonAsync("/api/v1/accountTypes", createRequest);
+
+                    if (retryResponse.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine($"EnsureAccountTypesSeededAsync: Successfully created account type '{accountTypeName}' on retry");
+                    }
+                    else
+                    {
+                        var errorContent = await retryResponse.Content.ReadAsStringAsync();
+                        Console.WriteLine($"EnsureAccountTypesSeededAsync: Failed to create account type '{accountTypeName}' on retry. Status: {retryResponse.StatusCode}, Content: {errorContent}");
+                    }
                 }
-                catch
+                catch (Exception retryEx)
                 {
-                    // If it still fails, we'll let the calling test handle the error
-                    throw new InvalidOperationException($"Failed to create account type '{accountTypeName}' after retry. Check if API service is running properly.");
+                    throw new InvalidOperationException($"Failed to create account type '{accountTypeName}' after retry. Original error: {ex.Message}, Retry error: {retryEx.Message}", retryEx);
                 }
             }
         }
+
+        Console.WriteLine("EnsureAccountTypesSeededAsync: Finished creating account types");
     }
 
     /// <summary>
@@ -332,15 +459,29 @@ public static class SeededDataHelper
     {
         try
         {
-            var transactionTypes = await httpClient.GetFromJsonAsync<List<TransactionType>>("/api/v1/transactionTypes");
+            var response = await httpClient.GetAsync("/api/v1/transactionTypes");
 
-            if (transactionTypes?.Count > 0)
-                return; // Already seeded
+            if (response.IsSuccessStatusCode)
+            {
+                var transactionTypes = await response.Content.ReadFromJsonAsync<List<TransactionType>>();
+
+                if (transactionTypes?.Count > 0)
+                {
+                    Console.WriteLine($"EnsureTransactionTypesSeededAsync: Found {transactionTypes.Count} existing transaction types: [{string.Join(", ", transactionTypes.Select(tt => tt.Type))}]");
+                    return; // Already seeded
+                }
+            }
+            else
+            {
+                Console.WriteLine($"EnsureTransactionTypesSeededAsync: Failed to check existing transaction types. Status: {response.StatusCode}");
+            }
         }
-        catch
+        catch (Exception ex)
         {
-            // If the call fails, we'll proceed to create the data
+            Console.WriteLine($"EnsureTransactionTypesSeededAsync: Error checking existing transaction types: {ex.Message}");
         }
+
+        Console.WriteLine("EnsureTransactionTypesSeededAsync: No transaction types found, creating them...");
 
         // Create the standard transaction types used in tests
         var transactionTypesToCreate = new[]
@@ -364,26 +505,56 @@ public static class SeededDataHelper
 
             try
             {
-                await httpClient.PostAsJsonAsync("/api/v1/transactionTypes", createRequest);
+                Console.WriteLine($"EnsureTransactionTypesSeededAsync: Creating transaction type '{transactionTypeName}'...");
+                var response = await httpClient.PostAsJsonAsync("/api/v1/transactionTypes", createRequest);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"EnsureTransactionTypesSeededAsync: Successfully created transaction type '{transactionTypeName}'");
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    Console.WriteLine($"EnsureTransactionTypesSeededAsync: Transaction type '{transactionTypeName}' already exists");
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"EnsureTransactionTypesSeededAsync: Failed to create transaction type '{transactionTypeName}'. Status: {response.StatusCode}, Content: {errorContent}");
+                }
             }
             catch (HttpRequestException ex) when (ex.Message.Contains("409") || ex.Message.Contains("Conflict"))
             {
-                // Transaction type already exists, continue
+                Console.WriteLine($"EnsureTransactionTypesSeededAsync: Transaction type '{transactionTypeName}' already exists (HttpRequestException)");
             }
-            catch
+            catch (Exception ex)
             {
-                // Other errors might indicate API is not ready, so we'll wait a bit and retry
+                Console.WriteLine($"EnsureTransactionTypesSeededAsync: Error creating transaction type '{transactionTypeName}': {ex.Message}");
+
+                // Wait a bit and retry once
                 await Task.Delay(1000);
                 try
                 {
-                    await httpClient.PostAsJsonAsync("/api/v1/transactionTypes", createRequest);
+                    Console.WriteLine($"EnsureTransactionTypesSeededAsync: Retrying creation of transaction type '{transactionTypeName}'...");
+                    var retryResponse = await httpClient.PostAsJsonAsync("/api/v1/transactionTypes", createRequest);
+
+                    if (retryResponse.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine($"EnsureTransactionTypesSeededAsync: Successfully created transaction type '{transactionTypeName}' on retry");
+                    }
+                    else
+                    {
+                        var errorContent = await retryResponse.Content.ReadAsStringAsync();
+                        Console.WriteLine($"EnsureTransactionTypesSeededAsync: Failed to create transaction type '{transactionTypeName}' on retry. Status: {retryResponse.StatusCode}, Content: {errorContent}");
+                    }
                 }
-                catch
+                catch (Exception retryEx)
                 {
-                    throw new InvalidOperationException($"Failed to create transaction type '{transactionTypeName}' after retry. Check if API service is running properly.");
+                    throw new InvalidOperationException($"Failed to create transaction type '{transactionTypeName}' after retry. Original error: {ex.Message}, Retry error: {retryEx.Message}", retryEx);
                 }
             }
         }
+
+        Console.WriteLine("EnsureTransactionTypesSeededAsync: Finished creating transaction types");
     }
 
     /// <summary>
@@ -393,15 +564,29 @@ public static class SeededDataHelper
     {
         try
         {
-            var categories = await httpClient.GetFromJsonAsync<List<TransactionCategory>>("/api/v1/transactionCategories");
+            var response = await httpClient.GetAsync("/api/v1/transactionCategories");
 
-            if (categories?.Count > 0)
-                return; // Already seeded
+            if (response.IsSuccessStatusCode)
+            {
+                var categories = await response.Content.ReadFromJsonAsync<List<TransactionCategory>>();
+
+                if (categories?.Count > 0)
+                {
+                    Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Found {categories.Count} existing transaction categories: [{string.Join(", ", categories.Select(tc => tc.Category))}]");
+                    return; // Already seeded
+                }
+            }
+            else
+            {
+                Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Failed to check existing transaction categories. Status: {response.StatusCode}");
+            }
         }
-        catch
+        catch (Exception ex)
         {
-            // If the call fails, we'll proceed to create the data
+            Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Error checking existing transaction categories: {ex.Message}");
         }
+
+        Console.WriteLine("EnsureTransactionCategoriesSeededAsync: No transaction categories found, creating them...");
 
         // Create the standard transaction categories used in tests
         var categoriesToCreate = new[]
@@ -423,25 +608,55 @@ public static class SeededDataHelper
 
             try
             {
-                await httpClient.PostAsJsonAsync("/api/v1/transactionCategories", createRequest);
+                Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Creating transaction category '{categoryData.Category}'...");
+                var response = await httpClient.PostAsJsonAsync("/api/v1/transactionCategories", createRequest);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Successfully created transaction category '{categoryData.Category}'");
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Transaction category '{categoryData.Category}' already exists");
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Failed to create transaction category '{categoryData.Category}'. Status: {response.StatusCode}, Content: {errorContent}");
+                }
             }
             catch (HttpRequestException ex) when (ex.Message.Contains("409") || ex.Message.Contains("Conflict"))
             {
-                // Transaction category already exists, continue
+                Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Transaction category '{categoryData.Category}' already exists (HttpRequestException)");
             }
-            catch
+            catch (Exception ex)
             {
-                // Other errors might indicate API is not ready, so we'll wait a bit and retry
+                Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Error creating transaction category '{categoryData.Category}': {ex.Message}");
+
+                // Wait a bit and retry once
                 await Task.Delay(1000);
                 try
                 {
-                    await httpClient.PostAsJsonAsync("/api/v1/transactionCategories", createRequest);
+                    Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Retrying creation of transaction category '{categoryData.Category}'...");
+                    var retryResponse = await httpClient.PostAsJsonAsync("/api/v1/transactionCategories", createRequest);
+
+                    if (retryResponse.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Successfully created transaction category '{categoryData.Category}' on retry");
+                    }
+                    else
+                    {
+                        var errorContent = await retryResponse.Content.ReadAsStringAsync();
+                        Console.WriteLine($"EnsureTransactionCategoriesSeededAsync: Failed to create transaction category '{categoryData.Category}' on retry. Status: {retryResponse.StatusCode}, Content: {errorContent}");
+                    }
                 }
-                catch
+                catch (Exception retryEx)
                 {
-                    throw new InvalidOperationException($"Failed to create transaction category '{categoryData.Category}' after retry. Check if API service is running properly.");
+                    throw new InvalidOperationException($"Failed to create transaction category '{categoryData.Category}' after retry. Original error: {ex.Message}, Retry error: {retryEx.Message}", retryEx);
                 }
             }
         }
+
+        Console.WriteLine("EnsureTransactionCategoriesSeededAsync: Finished creating transaction categories");
     }
 }

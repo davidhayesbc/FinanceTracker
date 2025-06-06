@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Aspire.Hosting;
 using Aspire.Hosting.Testing;
@@ -50,6 +51,11 @@ namespace FinanceTracker.ApiService.Tests.Infrastructure
 
             await _app.StartAsync();
 
+            // Wait for the migration service to complete first
+            await resourceNotificationService
+                .WaitForResourceAsync("migrationservice", KnownResourceStates.Finished)
+                .WaitAsync(TimeSpan.FromSeconds(60));
+
             // Create HTTP client for the API service
             HttpClient = _app.CreateHttpClient("apiservice");
 
@@ -67,20 +73,46 @@ namespace FinanceTracker.ApiService.Tests.Infrastructure
         /// </summary>
         private async Task SeedDatabaseAsync()
         {
-            // Get a scope from the API service to access the DbContext
-            using var scope = _app!.Services.CreateScope();
-
-            // We need to make a request to the API to trigger the DbContext creation
-            // since it's in the API service, not the test host
             try
             {
+                Console.WriteLine("AspireApplicationFixture: Verifying API service health...");
+
                 // Make a simple request to ensure the API service is ready
-                // The API service will create its own in-memory database when it starts
                 var response = await HttpClient.GetAsync("/health");
                 response.EnsureSuccessStatusCode();
+
+                Console.WriteLine("AspireApplicationFixture: API service is healthy");
+
+                // Verify that essential reference data exists by making some API calls
+                Console.WriteLine("AspireApplicationFixture: Verifying reference data...");
+
+                var accountTypesResponse = await HttpClient.GetAsync("/api/v1/accountTypes");
+                if (accountTypesResponse.IsSuccessStatusCode)
+                {
+                    var accountTypes = await accountTypesResponse.Content.ReadFromJsonAsync<List<dynamic>>();
+                    Console.WriteLine($"AspireApplicationFixture: Found {accountTypes?.Count ?? 0} account types");
+                }
+                else
+                {
+                    Console.WriteLine($"AspireApplicationFixture: Failed to check account types - Status: {accountTypesResponse.StatusCode}");
+                }
+
+                var transactionTypesResponse = await HttpClient.GetAsync("/api/v1/transactionTypes");
+                if (transactionTypesResponse.IsSuccessStatusCode)
+                {
+                    var transactionTypes = await transactionTypesResponse.Content.ReadFromJsonAsync<List<dynamic>>();
+                    Console.WriteLine($"AspireApplicationFixture: Found {transactionTypes?.Count ?? 0} transaction types");
+                }
+                else
+                {
+                    Console.WriteLine($"AspireApplicationFixture: Failed to check transaction types - Status: {transactionTypesResponse.StatusCode}");
+                }
+
+                Console.WriteLine("AspireApplicationFixture: Database verification complete");
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"AspireApplicationFixture: Error during database seeding/verification: {ex.Message}");
                 throw new InvalidOperationException("Failed to initialize API service database", ex);
             }
         }
