@@ -28,7 +28,8 @@ public static class AccountTypeEndpoints
         .WithDescription("Gets all account types")
         .Produces<List<AccountType>>(StatusCodes.Status200OK);
 
-        accountTypeEndpoints.MapPost("/", async (FinanceTackerDbContext context, CreateAccountTypeRequestDto request) =>
+        accountTypeEndpoints.MapPost("/", async (FinanceTackerDbContext context, CreateAccountTypeRequestDto? request) =>
+
         {
             if (request == null) return Results.BadRequest("Account type data is required");
 
@@ -78,7 +79,7 @@ public static class AccountTypeEndpoints
         .Produces(StatusCodes.Status404NotFound);
 
         // PUT /accountTypes/{id} - Update account type
-        accountTypeEndpoints.MapPut("/{id:int}", async (int id, UpdateAccountTypeRequestDto request, FinanceTackerDbContext context) =>
+        accountTypeEndpoints.MapPut("/{id:int}", async (int id, UpdateAccountTypeRequestDto? request, FinanceTackerDbContext context) =>
         {
             if (request == null) return Results.BadRequest("Account type data is required");
 

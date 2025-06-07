@@ -26,6 +26,9 @@ namespace FinanceTracker.ApiService.Tests.Infrastructure
         /// </summary>
         public async Task InitializeAsync()
         {
+            // Set environment to Testing to ensure separate database mount
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+
             // Create the Aspire application host with test configuration
             var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.FinanceTracker_AppHost>();
 
@@ -124,6 +127,9 @@ namespace FinanceTracker.ApiService.Tests.Infrastructure
             {
                 await _app.DisposeAsync();
             }
+
+            // Reset environment variable
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
         }
     }
 }

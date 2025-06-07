@@ -362,3 +362,7 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 FinanceTracker.Data/SampleData.sql
+
+# SQL Server container data directories
+FinanceTracker.AppHost/SqlData/
+FinanceTracker.AppHost/SqlData_Tests/

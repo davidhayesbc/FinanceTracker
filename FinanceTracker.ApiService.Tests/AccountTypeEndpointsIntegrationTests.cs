@@ -418,9 +418,9 @@ public class AccountTypeEndpointsIntegrationTests : SharedAspireIntegrationTestB
         // First create necessary reference data
         var currencyRequest = new CreateCurrencyRequestDto
         {
-            Name = "US Dollar",
-            Symbol = "USD",
-            DisplaySymbol = "$"
+            Name = "Japanese Yen",
+            Symbol = "JPY",
+            DisplaySymbol = "¥"
         };
         var currencyResponse = await HttpClient.PostAsJsonAsync("/api/v1/currencies", currencyRequest);
         var currency = await currencyResponse.Content.ReadFromJsonAsync<CurrencyDto>();
@@ -445,6 +445,8 @@ public class AccountTypeEndpointsIntegrationTests : SharedAspireIntegrationTestB
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var error = await response.Content.ReadAsStringAsync();
+        error.Should().NotBeNullOrWhiteSpace(); // Optionally check for a specific error message
     }
 
     #endregion

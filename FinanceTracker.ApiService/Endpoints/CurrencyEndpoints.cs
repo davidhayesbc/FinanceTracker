@@ -69,7 +69,12 @@ public static class CurrencyEndpoints
 
             if (existingCurrency is not null)
             {
-                return Results.BadRequest($"Currency with symbol '{request.Symbol}' already exists.");
+                return Results.Conflict(new
+                {
+                    error = "A currency with this symbol already exists.",
+                    field = "symbol",
+                    value = request.Symbol
+                });
             }
 
             var currency = new Currency
