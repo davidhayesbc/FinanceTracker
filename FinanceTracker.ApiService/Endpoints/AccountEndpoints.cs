@@ -306,11 +306,18 @@ public static class AccountEndpoints
         .WithName("GetAccountRecurringTransactions")
         .WithDescription("Gets all recurring transactions for a specific cash account")
         .Produces<List<RecurringTransaction>>(StatusCodes.Status200OK)
-        .ProducesProblem(StatusCodes.Status404NotFound);
-
-        // Create a new cash account
+        .ProducesProblem(StatusCodes.Status404NotFound);        // Create a new cash account
         accountEndpoints.MapPost("/cash", async (FinanceTackerDbContext context, CreateCashAccountRequestDto request) =>
         {
+            // Check if cash account with same name and institution already exists
+            var existingAccount = await context.CashAccounts
+                .FirstOrDefaultAsync(a => a.Name == request.Name && a.Institution == request.Institution);
+
+            if (existingAccount != null)
+            {
+                return Results.Conflict($"Cash account '{request.Name}' already exists at '{request.Institution}'.");
+            }
+
             // Validate that AccountType and Currency exist
             var accountType = await context.AccountTypes.FindAsync(request.AccountTypeId);
             if (accountType == null)
@@ -369,15 +376,22 @@ public static class AccountEndpoints
                 .FirstAsync();
 
             return Results.Created($"/accounts/{cashAccount.Id}", createdAccount);
-        })
-        .WithName("CreateCashAccount")
+        }).WithName("CreateCashAccount")
         .WithDescription("Creates a new cash account with an initial account period.")
         .Produces<CashAccountDto>(StatusCodes.Status201Created)
-        .ProducesProblem(StatusCodes.Status400BadRequest);
-
-        // Create a new investment account
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status409Conflict);// Create a new investment account
         accountEndpoints.MapPost("/investment", async (FinanceTackerDbContext context, CreateInvestmentAccountRequestDto request) =>
         {
+            // Check if investment account with same name and institution already exists
+            var existingAccount = await context.InvestmentAccounts
+                .FirstOrDefaultAsync(a => a.Name == request.Name && a.Institution == request.Institution);
+
+            if (existingAccount != null)
+            {
+                return Results.Conflict($"Investment account '{request.Name}' already exists at '{request.Institution}'.");
+            }
+
             // Validate that AccountType and Currency exist
             var accountType = await context.AccountTypes.FindAsync(request.AccountTypeId);
             if (accountType == null)
@@ -441,10 +455,10 @@ public static class AccountEndpoints
                 .FirstAsync();
 
             return Results.Created($"/accounts/{investmentAccount.Id}", createdAccount);
-        })
-        .WithName("CreateInvestmentAccount")
+        }).WithName("CreateInvestmentAccount")
         .WithDescription("Creates a new investment account with an initial account period.")
         .Produces<InvestmentAccountDto>(StatusCodes.Status201Created)
-        .ProducesProblem(StatusCodes.Status400BadRequest);
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status409Conflict);
     }
 }

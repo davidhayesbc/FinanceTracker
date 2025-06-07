@@ -108,7 +108,7 @@ public static class SecurityEndpoints
 
             if (existingSecurity is not null)
             {
-                return Results.BadRequest($"Security with symbol '{request.Symbol}' already exists.");
+                return Results.Conflict($"Security with symbol '{request.Symbol}' already exists.");
             }
 
             // Verify currency exists
@@ -155,7 +155,8 @@ public static class SecurityEndpoints
         .WithSummary("Create a new security")
         .WithDescription("Creates a new security in the system.")
         .Produces<SecurityDto>(201)
-        .Produces(400);
+        .Produces(400)
+        .Produces(409);
 
         // PUT /securities/{id} - Update security
         securityEndpoints.MapPut("/{id:int}", async (int id, UpdateSecurityRequestDto request, FinanceTackerDbContext context) =>
